@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	once = flag.Bool("once", false, "If given, fetch source once, write to storage, and exit. Otherwise, keep running and fetch every interval.")
-	refreshInterval = flag.Duration("interval", time.Duration(5 * time.Minute), "Refresh source every duration with jitter. Ignored when -once is given")
-	refreshJitter = flag.Duration("jitter", time.Duration(23 * time.Second), "Apply jitter up to (-)duration on refresh interval, e.g. 5m (interval) +/- 23s (jitter)")
-	source  = flag.String("source", "", fmt.Sprintf("Fetch this source, prefixed with protocol://. Supported: %+q", SupportedProtocols))
-	saveDir = flag.String("storage", "", "Store results in this directory. If not supplied, a temporary directory will be created. If the supplied directory doesn't exist, it's created given enough permissions. Existing files in the supplied directory are never overwritten.")
+	once            = flag.Bool("once", false, "If given, fetch source once, write to storage, and exit. Otherwise, keep running and fetch every interval.")
+	refreshInterval = flag.Duration("interval", time.Duration(5*time.Minute), "Refresh source every duration with jitter. Ignored when -once is given")
+	refreshJitter   = flag.Duration("jitter", time.Duration(23*time.Second), "Apply jitter up to (-)duration on refresh interval, e.g. 5m (interval) +/- 23s (jitter)")
+	source          = flag.String("source", "", fmt.Sprintf("Fetch this source, prefixed with protocol://. Supported: %+q", SupportedProtocols))
+	saveDir         = flag.String("storage", "", "Store results in this directory. If not supplied, a temporary directory will be created. If the supplied directory doesn't exist, it's created given enough permissions. Existing files in the supplied directory are never overwritten.")
+	appname         = flag.String("appname", "", "Set the application name (used in e.g. user-agent and request-id)")
 )
 
 func main() {
@@ -27,8 +28,14 @@ func main() {
 		return
 	}
 
+	if *appname == "" {
+		*appname = "FIXME-to-be-nice"
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx.Done()
 
 }
+
+// vim: cc=120:

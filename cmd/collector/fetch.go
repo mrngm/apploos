@@ -44,3 +44,5 @@ func FetchSource(src string) ([]byte, error) {
 
 	return nil, fmt.Errorf("protocol %q seemed supported, but implementation is missing", protocol)
 }
+
+// vim: cc=120:

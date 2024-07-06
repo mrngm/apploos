@@ -1,7 +1,9 @@
 *
 
-!**/go.mod
-!**/go.sum
-!**/*.go
-!**/.gitignore
-
+!*.go
+!go.mod
+!go.sum
+!.gitignore
+!README.md
+!LICENSE
+!*/
