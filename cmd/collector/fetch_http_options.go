@@ -23,7 +23,7 @@ func WithAcceptHeader(val string) HTTPFetchOption {
 		}
 		// TODO: if multiple types are given, validate each one
 		r.Header.Set("accept", val)
-		slog.Debug("WithAcceptHeader", "accept", val, slog.Group("request", "method", r.Method, "url", &r.URL))
+		slog.Debug("WithAcceptHeader", "accept", req2slog(r))
 		return nil
 	}
 }
@@ -31,7 +31,7 @@ func WithAcceptHeader(val string) HTTPFetchOption {
 func WithBasicAuth(user, pass string) HTTPFetchOption {
 	return func(r *http.Request) error {
 		r.SetBasicAuth(user, pass)
-		slog.Debug("WithBasicAuth", "user", user, "pass", "<redacted>", slog.Group("request", "method", r.Method, "url", &r.URL))
+		slog.Debug("WithBasicAuth", "user", user, "pass", "<redacted>", req2slog(r))
 		return nil
 	}
 }
@@ -39,7 +39,7 @@ func WithBasicAuth(user, pass string) HTTPFetchOption {
 func WithUserAgent(val string) HTTPFetchOption {
 	return func(r *http.Request) error {
 		r.Header.Set("user-agent", val)
-		slog.Debug("WithUserAgent", "user-agent", val, slog.Group("request", "method", r.Method, "url", &r.URL))
+		slog.Debug("WithUserAgent", "user-agent", val, req2slog(r))
 		return nil
 	}
 }
@@ -55,7 +55,7 @@ func WithRequestIdAndAppname(id uuid.UUID, appname string) HTTPFetchOption {
 		}
 		headerName := "x-" + appname + "-request-id"
 		r.Header.Set(headerName, strVal)
-		slog.Debug("WithRequestId", "request-id", strVal, "header-used", headerName, slog.Group("request", "method", r.Method, "url", &r.URL))
+		slog.Debug("WithRequestId", "request-id", strVal, "header-used", headerName, req2slog(r))
 		return nil
 	}
 }

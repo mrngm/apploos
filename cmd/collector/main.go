@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
 	"time"
 )
@@ -20,21 +21,37 @@ var (
 	appname         = flag.String("appname", "", "Set the application name (used in e.g. user-agent and request-id)")
 )
 
+var (
+	logLevel = new(slog.LevelVar)
+)
+
 func main() {
 	flag.Parse()
-	if flag.NArg() == 0 {
+	if flag.NArg() == 0 && flag.NFlag() == 0 {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 		return
 	}
+	logLevel.Set(slog.LevelDebug)
 
 	if *appname == "" {
 		*appname = "FIXME-to-be-nice"
 	}
 
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel}))
+	slog.SetDefault(logger)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx.Done()
+
+	srcContents, err := FetchSource(ctx, *source)
+	if err != nil {
+		logger.Error("FetchSource failed", "err", err)
+		return
+	}
+
+	logger.Debug("FetchSource contents", "length", len(srcContents))
 
 }
 

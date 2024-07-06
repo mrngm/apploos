@@ -34,19 +34,19 @@ func FetchHTTPSource(ctx context.Context, src string, options ...HTTPFetchOption
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
-		slog.Error("FetchHTTPSource request creation failed", "error", err, slog.Group("request", "method", http.MethodGet, "src", src))
+		slog.Error("FetchHTTPSource request creation failed", "err", err, slog.Group("request", "method", http.MethodGet, "src", src)) // req2slog wouldn't work
 		return nil, fmt.Errorf("creating request failed: %v", err)
 	}
 
 	for _, opt := range options {
 		err = opt(req)
 		if err != nil {
-			slog.Error("FetchHTTPSource option setting failed", "error", err, slog.Group("request", "method", req.Method, "src", src))
+			slog.Error("FetchHTTPSource option setting failed", "err", err, req2slog(req))
 			return nil, fmt.Errorf("setting HTTPFetchOption failed: %v", err)
 		}
 	}
 
-	slog.Debug("request created", "request-id", &reqId, slog.Group("request", "method", req.Method, "url", &req.URL))
+	slog.Debug("request created", "request-id", &reqId, req2slog(req))
 
 	return nil, fmt.Errorf("unimplemented")
 }
