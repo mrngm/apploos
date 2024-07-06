@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -89,14 +90,18 @@ func main() {
 	defer cancel()
 	ctx.Done()
 
-	srcContents, err := FetchSource(ctx, *source)
+	srcReader, err := FetchSource(ctx, *source)
 	if err != nil {
 		logger.Error("FetchSource failed", "err", err)
 		return
 	}
 
+	srcContents, err := io.ReadAll(srcReader)
+	if err != nil {
+		logger.Error("io.ReadAll on FetchSource failed", "err", err)
+		return
+	}
 	logger.Debug("FetchSource contents", "length", len(srcContents))
-
 }
 
 // vim: cc=120:

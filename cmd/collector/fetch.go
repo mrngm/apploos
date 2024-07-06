@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"strings"
+	"time"
 )
 
 var (
@@ -28,7 +30,7 @@ func IsSupportedSource(src string) (string, error) {
 	return "", fmt.Errorf("unsupported source protocol for value %q", src)
 }
 
-func FetchSource(ctx context.Context, src string) ([]byte, error) {
+func FetchSource(ctx context.Context, src string) (io.Reader, error) {
 	protocol, err := IsSupportedSource(src)
 	if err != nil {
 		return nil, err
@@ -36,7 +38,8 @@ func FetchSource(ctx context.Context, src string) ([]byte, error) {
 
 	switch protocol {
 	case "http://", "https://":
-		return FetchHTTPSource(ctx, src)
+		fetcher := NewHTTPFetcher(4 * time.Minute)
+		return fetcher.Fetch(ctx, src)
 	case "file://":
 		return nil, fmt.Errorf("unimplemented")
 	}
