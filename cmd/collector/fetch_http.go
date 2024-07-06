@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"net/http"
-	"slog"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -28,18 +30,18 @@ func FetchHTTPSource(ctx context.Context, src string, options ...HTTPFetchOption
 	reqId := uuid.New() // may panic
 	options = append(options, WithRequestIdAndAppname(reqId, *appname))
 
-	ctx = NewContextWithRequestId(reqId)
+	ctx = NewContextWithRequestId(ctx, reqId)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
-		slog.Error("FetchHTTPSource request creation failed", "error", err, slog.Group("request", "method", method, "src", src))
+		slog.Error("FetchHTTPSource request creation failed", "error", err, slog.Group("request", "method", http.MethodGet, "src", src))
 		return nil, fmt.Errorf("creating request failed: %v", err)
 	}
 
-	for opt := range options {
+	for _, opt := range options {
 		err = opt(req)
 		if err != nil {
-			slog.Error("FetchHTTPSource option setting failed", "error", err, slog.Group("request", "method", method, "src", src))
+			slog.Error("FetchHTTPSource option setting failed", "error", err, slog.Group("request", "method", req.Method, "src", src))
 			return nil, fmt.Errorf("setting HTTPFetchOption failed: %v", err)
 		}
 	}

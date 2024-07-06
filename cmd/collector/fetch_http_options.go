@@ -1,8 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
-	"slog"
 	"strings"
 
 	"github.com/google/uuid"
