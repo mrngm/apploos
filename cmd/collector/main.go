@@ -5,8 +5,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"time"
@@ -33,13 +35,55 @@ func main() {
 		return
 	}
 	logLevel.Set(slog.LevelDebug)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel}))
+	slog.SetDefault(logger)
 
 	if *appname == "" {
 		*appname = "FIXME-to-be-nice"
 	}
 
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel}))
-	slog.SetDefault(logger)
+	start := time.Now()
+	if *saveDir == "" {
+		// Create temporary directory in os.TempDir()
+		tmpDir, err := os.MkdirTemp("", "collector-"+start.Format("20060102"))
+		if err != nil && errors.Is(err, fs.ErrPermission) {
+			logger.Error("cannot create tmpDir due to permissions", "err", err)
+			os.Exit(1)
+		} else if err != nil {
+			logger.Error("error creating tmpDir", "err", err)
+			os.Exit(1)
+		}
+		// TODO: we'll leave a tmp dir, perhaps add a flag that automatically removes it?
+		logger.Info("created a temporary directory, it won't be removed", "dir", tmpDir)
+	} else {
+		// Try creating a file in the supplied directory and write something. If that fails, exit
+		tmpFile, err := os.CreateTemp(*saveDir, "collector-"+start.Format("20060102"))
+		if err != nil && errors.Is(err, fs.ErrPermission) {
+			logger.Error("cannot create tmpFile due to permissions", "err", err, "dir", *saveDir)
+			os.Exit(1)
+		} else if err != nil {
+			logger.Error("error creating tmpFile", "err", err, "dir", *saveDir)
+			os.Exit(1)
+		}
+
+		defer func() {
+			if err := os.Remove(tmpFile.Name()); err != nil {
+				logger.Error("(deferred) removing tmpFile failed", "err", err, "fn", tmpFile, "dir", *saveDir)
+			}
+		}()
+
+		shouldExit := false
+		if _, err := tmpFile.Write([]byte("collector-write")); err != nil {
+			logger.Error("could not write to tmpFile", "err", err, "fn", tmpFile)
+			shouldExit = true
+		}
+		if err := tmpFile.Close(); err != nil {
+			logger.Error("could not close tmpFile", "err", err, "fn", tmpFile)
+		}
+		if shouldExit {
+			os.Exit(1)
+		}
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
