@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -18,7 +19,7 @@ import (
 var (
 	once            = flag.Bool("once", false, "If given, fetch source once, write to storage, and exit. Otherwise, keep running and fetch every interval.")
 	refreshInterval = flag.Duration("interval", time.Duration(5*time.Minute), "Refresh source every duration with jitter. Ignored when -once is given")
-	refreshJitter   = flag.Duration("jitter", time.Duration(23*time.Second), "Apply jitter up to (-)duration on refresh interval, e.g. 5m (interval) +/- 23s (jitter)")
+	refreshJitter   = flag.Duration("jitter", time.Duration(23*time.Second), "Apply jitter up to (-)duration on refresh interval, e.g. 5m (interval) +/- 23s (jitter). Jitter's granularity is seconds")
 	source          = flag.String("source", "", fmt.Sprintf("Fetch this source, prefixed with protocol://. Supported: %+q", SupportedProtocols))
 	saveDir         = flag.String("storage", "", "Store results in this directory. If not supplied, a temporary directory will be created. If the supplied directory doesn't exist, it's created given enough permissions. Existing files in the supplied directory are never overwritten.")
 	appname         = flag.String("appname", "", "Set the application name (used in e.g. user-agent and request-id)")
@@ -87,24 +88,52 @@ func main() {
 		os.Exit(1)
 	}
 
+	shutdownCh := make(chan struct{})
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	ctx.Done()
 
-	srcReader, err := FetchSource(ctx, *source)
-	if err != nil {
-		logger.Error("FetchSource failed", "err", err)
-		return
-	}
+	go HandleSignals(ctx, shutdownCh)
 
-	srcContents, err := io.ReadAll(srcReader)
-	if err != nil {
-		logger.Error("io.ReadAll on FetchSource failed", "err", err)
-		return
+	nextTimeTicker := time.NewTicker(1 * time.Second)
+	defer nextTimeTicker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			break
+		case <-shutdownCh:
+			cancel()
+			break
+		case <-nextTimeTicker.C:
+		}
+		srcReader, err := FetchSource(ctx, *source)
+		if err != nil {
+			logger.Error("FetchSource failed", "err", err)
+			return
+		}
+
+		srcContents, err := io.ReadAll(srcReader)
+		if err != nil {
+			logger.Error("io.ReadAll on FetchSource failed", "err", err)
+			return
+		}
+		logger.Debug("FetchSource contents", "length", len(srcContents))
+		written, err := SaveToDisk(ctx, "testname.blob", srcContents)
+		if err != nil {
+			logger.Error("failed saving to disk", "err", err)
+		}
+		logger.Debug("SaveToDisk returns", "written", written, "err", err)
+
+		if *once {
+			break
+		}
+
+		// Calculate the next tick using *refreshInterval and *refreshJitter
+		jitterSeconds := time.Duration(-int((*refreshJitter).Seconds())+int(rand.Intn(2*int((*refreshJitter).Seconds())))) * time.Second
+		newInterval := *refreshInterval + jitterSeconds
+		logger.Debug("refresh + jitter", "refreshInterval", *refreshInterval, "proposedJitter", jitterSeconds, "newInterval", newInterval)
+		nextTimeTicker.Reset(newInterval)
 	}
-	logger.Debug("FetchSource contents", "length", len(srcContents))
-	written, err := SaveToDisk(ctx, "testname.blob", srcContents)
-	logger.Debug("main's last breath", "written", written, "err", err)
 }
 
 // vim: cc=120:
