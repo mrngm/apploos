@@ -41,9 +41,14 @@ func NewHTTPFetcher(timeout time.Duration) *HTTPFetcher {
 	}
 }
 
-// FetchHTTPSource retrieves src (protocols: http://, https://) using GET method and returns the bytes and nil error.
-// Otherwise, an appropriate error is returned. It's possible to customize the request using the options.
-func (hf *HTTPFetcher) Fetch(ctx context.Context, src string, options ...HTTPFetchOption) (io.Reader, error) {
+// FetchHTTPSource retrieves src (protocols: http://, https://) using GET method and returns an io.ReadCloer and nil
+// error.  Otherwise, an appropriate error is returned. It's possible to customize parts of the request using the
+// options.
+//
+// The caller must close the returned io.ReadCloser on nil error.
+//
+// If a request ID couldn't be generated (UUID), this function may panic.
+func (hf *HTTPFetcher) Fetch(ctx context.Context, src string, options ...HTTPFetchOption) (io.ReadCloser, error) {
 	// Try to make sense of the provided src
 	if !(strings.HasPrefix(src, "http://") || strings.HasPrefix(src, "https://")) {
 		return nil, fmt.Errorf("invalid prefix, expected http:// or https://")
@@ -82,7 +87,7 @@ func (hf *HTTPFetcher) Fetch(ctx context.Context, src string, options ...HTTPFet
 	}
 	slog.Info("received response", util.Resp2slog(resp))
 
-	return nil, fmt.Errorf("unimplemented")
+	return resp.Body, nil
 }
 
 // vim: cc=120:

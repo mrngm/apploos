@@ -103,6 +103,8 @@ func main() {
 		return
 	}
 	logger.Debug("FetchSource contents", "length", len(srcContents))
+	written, err := SaveToDisk(ctx, "testname.blob", srcContents)
+	logger.Debug("main's last breath", "written", written, "err", err)
 }
 
 // vim: cc=120:

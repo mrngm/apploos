@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -30,7 +31,15 @@ func IsSupportedSource(src string) (string, error) {
 	return "", fmt.Errorf("unsupported source protocol for value %q", src)
 }
 
-func FetchSource(ctx context.Context, src string) (io.Reader, error) {
+// FetchSource tries to fetch the supplied src. It returns an io.ReadCloser and nil error on success, or an appropriate
+// error message otherwise.
+func FetchSource(ctx context.Context, src string) (io.ReadCloser, error) {
+	defer func() {
+		if p := recover(); p != nil {
+			slog.Error("FetchSource panicked", "src", src, "panic", p)
+		}
+	}()
+
 	protocol, err := IsSupportedSource(src)
 	if err != nil {
 		return nil, err
