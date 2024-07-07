@@ -25,6 +25,11 @@ func SaveToDisk(ctx context.Context, name string, data []byte) (int, error) {
 		slog.Error("SaveToDisk(dirFn.Open) failed", "err", err)
 		return 0, err
 	}
+	defer func() {
+		if err := dirFn.Close(); err != nil {
+			slog.Error("(deferred) SaveToDisk(dirFn.Close) failed", "err", err, "dir", *saveDir)
+		}
+	}()
 
 	patternTmp := "tmp-" + name + "-"
 	fnTmp, err := os.CreateTemp(*saveDir, patternTmp)
