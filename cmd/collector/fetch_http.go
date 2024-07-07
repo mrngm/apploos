@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/mrngm/apploos/util"
 )
 
 type HTTPFetcher struct {
@@ -21,9 +23,9 @@ type HTTPFetcher struct {
 func redirPreventerLogger(req *http.Request, via []*http.Request) error {
 	viaLogs := make([]slog.Attr, len(via))
 	for i, theVia := range via {
-		viaLogs[i] = slog.Group("via"+strconv.Itoa(i), req2slog(theVia))
+		viaLogs[i] = slog.Group("via"+strconv.Itoa(i), util.Req2slog(theVia))
 	}
-	slog.Error("redirected", "vias", viaLogs, req2slog(req))
+	slog.Error("redirected", "vias", viaLogs, util.Req2slog(req))
 	if len(via) < 2 {
 		return nil
 	}
@@ -55,30 +57,30 @@ func (hf *HTTPFetcher) Fetch(ctx context.Context, src string, options ...HTTPFet
 	reqId := uuid.New() // may panic
 	options = append(options, WithRequestIdAndAppname(reqId, *appname))
 
-	ctx = NewContextWithRequestId(ctx, reqId)
+	ctx = util.NewContextWithRequestId(ctx, reqId)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, nil)
 	if err != nil {
-		slog.Error("FetchHTTPSource request creation failed", "err", err, slog.Group("request", "method", http.MethodGet, "src", src)) // req2slog wouldn't work
+		slog.Error("FetchHTTPSource request creation failed", "err", err, slog.Group("request", "method", http.MethodGet, "src", src)) // util.Req2slog wouldn't work
 		return nil, fmt.Errorf("creating request failed: %v", err)
 	}
 
 	for _, opt := range options {
 		err = opt(req)
 		if err != nil {
-			slog.Error("FetchHTTPSource option setting failed", "err", err, req2slog(req))
+			slog.Error("FetchHTTPSource option setting failed", "err", err, util.Req2slog(req))
 			return nil, fmt.Errorf("setting HTTPFetchOption failed: %v", err)
 		}
 	}
 
-	slog.Debug("request created", "request-id", reqId, req2slog(req))
+	slog.Debug("request created", "request-id", reqId, util.Req2slog(req))
 
 	resp, err := hf.client.Do(req)
 	if err != nil {
-		slog.Error("request failed", "err", err, req2slog(req))
+		slog.Error("request failed", "err", err, util.Req2slog(req))
 		return nil, err
 	}
-	slog.Info("received response", resp2slog(resp))
+	slog.Info("received response", util.Resp2slog(resp))
 
 	return nil, fmt.Errorf("unimplemented")
 }

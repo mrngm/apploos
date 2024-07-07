@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+
+	"github.com/mrngm/apploos/util"
 )
 
 var HTTPHeaderRequestId = "x-YOURAPPNAMEHERE-request-id"
@@ -23,7 +25,7 @@ func WithAcceptHeader(val string) HTTPFetchOption {
 		}
 		// TODO: if multiple types are given, validate each one
 		r.Header.Set("accept", val)
-		slog.Debug("WithAcceptHeader", "accept", req2slog(r))
+		slog.Debug("WithAcceptHeader", "accept", util.Req2slog(r))
 		return nil
 	}
 }
@@ -31,7 +33,7 @@ func WithAcceptHeader(val string) HTTPFetchOption {
 func WithBasicAuth(user, pass string) HTTPFetchOption {
 	return func(r *http.Request) error {
 		r.SetBasicAuth(user, pass)
-		slog.Debug("WithBasicAuth", "user", user, "pass", "<redacted>", req2slog(r))
+		slog.Debug("WithBasicAuth", "user", user, "pass", "<redacted>", util.Req2slog(r))
 		return nil
 	}
 }
@@ -39,7 +41,7 @@ func WithBasicAuth(user, pass string) HTTPFetchOption {
 func WithUserAgent(val string) HTTPFetchOption {
 	return func(r *http.Request) error {
 		r.Header.Set("user-agent", val)
-		slog.Debug("WithUserAgent", "user-agent", val, req2slog(r))
+		slog.Debug("WithUserAgent", "user-agent", val, util.Req2slog(r))
 		return nil
 	}
 }
@@ -55,7 +57,7 @@ func WithRequestIdAndAppname(id uuid.UUID, appname string) HTTPFetchOption {
 		}
 		headerName := "x-" + appname + "-request-id"
 		r.Header.Set(headerName, strVal)
-		slog.Debug("WithRequestId", "request-id", strVal, "header-used", headerName, req2slog(r))
+		slog.Debug("WithRequestId", "request-id", strVal, "header-used", headerName, util.Req2slog(r))
 		return nil
 	}
 }
