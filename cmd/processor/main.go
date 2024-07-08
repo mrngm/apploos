@@ -26,5 +26,6 @@ func main() {
 		slog.Error("cannot unmarshal JSON", "err", err)
 		os.Exit(1)
 	}
-	slog.Info("everything unpacked", "data", everything)
+	//	slog.Info("everything unpacked", "data", everything)
+	RenderSchedule(everything)
 }
