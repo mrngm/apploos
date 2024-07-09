@@ -13,6 +13,7 @@ import (
 type Location struct {
 	Id       int
 	Title    string
+	Slug string
 	Children []*Location
 }
 
@@ -29,8 +30,9 @@ func SetupDays(everything VierdaagseOverview) []VierdaagseDay {
 	return days
 }
 
-func SetupLocations(everything VierdaagseOverview) map[int]*Location {
+func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []string) {
 	locations := make(map[int]*Location)
+	parentLocations := 0
 	for _, loc := range everything.Locations {
 		if _, ok := locations[loc.Id]; !ok {
 			locations[loc.Id] = &Location{
@@ -40,10 +42,12 @@ func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 		theLoc := locations[loc.Id]
 		theLoc.Id = loc.Id
 		theLoc.Title = loc.Title
+		theLoc.Slug = loc.Slug
 		if loc.Parent > 0 {
-			// Sub locations, fill in separate loop
+			// Sub locations, fill into parent location's Children in separate loop
 			continue
 		}
+		parentLocations++
 	}
 	for _, loc := range everything.Locations {
 		if loc.Parent > 0 {
@@ -60,8 +64,10 @@ func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 		}
 	}
 
+	sortedParents := make([]string, 0, parentLocations)
 	for _, theLoc := range locations {
 		if len(theLoc.Children) > 0 {
+			sortedParents = append(sortedParents, theLoc.Title)
 			// Sort the children based on name
 			slices.SortFunc(theLoc.Children, func(a, b *Location) int {
 				return strings.Compare(a.Title, b.Title)
@@ -73,7 +79,8 @@ func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 			}
 		}
 	}
-	return locations
+	slices.Sort(sortedParents)
+	return locations, sortedParents
 }
 
 func appendEventTime(initialTime time.Time, eventTime string) time.Time {
@@ -124,18 +131,47 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 }
 
 func RenderSchedule(everything VierdaagseOverview) {
+	// Day -> Location (parent) -> Lcations (child) -> Event
 	days := SetupDays(everything)
-	//locs := SetupLocations(everything)
+	locs, sortedParents := SetupLocations(everything)
 	_, day2Program := SetupPrograms(everything)
-	for _, day := range days {
+
+	slog.Info("sortedParents", "sortedParents", sortedParents)
+
+	for n, day := range days {
+		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>` + "\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		dayId := day.IdWithTitle.Id
-		for _, program := range day2Program[dayId] {
-			slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
-				"startTime", program.FullStartTime,
-				"endTime", program.FullEndTime,
-				"duration", program.CalculatedDuration,
-			)
+		// Don't look down, really inefficient loops ahead
+		for _, parentLoc := range sortedParents {
+			var theLoc *Location
+			for _, loc := range locs {
+				if loc.Title == parentLoc {
+					theLoc = loc
+					break
+				}
+			}
+			fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>` + "\n", locs[theLoc.Id].Slug, theLoc.Title)
+			for _, childLoc := range theLoc.Children {
+				fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>` + "\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					for _, program := range day2Program[dayId] {
+						if program.Location.Id != childLoc.Id {
+							continue
+						}
+						fmt.Printf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s` +
+							`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>` + "\n",
+							program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
+						/*
+						slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
+							"startTime", program.FullStartTime,
+							"endTime", program.FullEndTime,
+							"duration", program.CalculatedDuration,
+						)
+						*/
+					}
+			}
+			fmt.Print(`  </section>` + "\n")
 		}
+		fmt.Print(`</section>` + "\n")
 	}
 }
 
