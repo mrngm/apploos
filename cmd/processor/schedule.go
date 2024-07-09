@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 )
 
 type Location struct {
@@ -52,15 +53,18 @@ func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 			if !ok {
 				panic("location child should exist")
 			}
+			theChildLoc.Title = strings.TrimSpace(strings.TrimLeft(strings.TrimPrefix(theChildLoc.Title, theParentLoc.Title), "- "))
 			theParentLoc.Children = append(theParentLoc.Children, theChildLoc)
 		}
 	}
 
 	for _, theLoc := range locations {
 		if len(theLoc.Children) > 0 {
-			slog.Info("parent location", "title", theLoc.Title)
+			// Sort the children based on name
+			slices.SortFunc(theLoc.Children, func(a, b *Location) int {
+				return strings.Compare(a.Title, b.Title)
+			})
 			for _, loc := range theLoc.Children {
-				slog.Info("child location", "title", loc.Title)
 				if len(loc.Children) > 0 {
 					slog.Error("child location has more locations", "len", len(loc.Children))
 				}
@@ -82,9 +86,12 @@ func SetupPrograms(everything VierdaagseOverview) map[int]VierdaagseProgram {
 
 func RenderSchedule(everything VierdaagseOverview) {
 	days := SetupDays(everything)
-	locs := SetupLocations(everything)
-	progs := SetupPrograms(everything)
+	//locs := SetupLocations(everything)
+	_ = SetupLocations(everything)
+	//progs := SetupPrograms(everything)
+	_ = SetupPrograms(everything)
 	for _, day := range days {
-		dayId := day.IdWithTitle.Id
+		//dayId := day.IdWithTitle.Id
+		_ = day.IdWithTitle.Id
 	}
 }
