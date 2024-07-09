@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Location struct {
@@ -74,24 +76,67 @@ func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 	return locations
 }
 
-func SetupPrograms(everything VierdaagseOverview) map[int]VierdaagseProgram {
-	programs := make(map[int]VierdaagseProgram)
-	for _, prog := range everything.Programs {
-		if _, ok := programs[prog.IdWithTitle.Id]; !ok {
-			programs[prog.IdWithTitle.Id] = prog
+func appendEventTime(initialTime time.Time, eventTime string) time.Time {
+	hours, minutes, ok := strings.Cut(eventTime, ":")
+	if ok && len(hours) == 2 && len(minutes) == 2 {
+		hrs, err := strconv.Atoi(hours)
+		if err == nil {
+			initialTime = initialTime.Add(time.Duration(hrs) * time.Hour)
+		}
+		mins, err := strconv.Atoi(minutes)
+		if err == nil {
+			initialTime = initialTime.Add(time.Duration(mins) * time.Minute)
 		}
 	}
-	return programs
+	return initialTime
+}
+
+func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, map[int][]*VierdaagseProgram) {
+	dayToPrograms := make(map[ /* dayId */ int][] /* sorted slice based on start_time full details */ *VierdaagseProgram)
+	programs := make(map[int]*VierdaagseProgram)
+	for _, prog := range everything.Programs {
+		prog := prog
+		// Calculate full start time and full end time. The start time is on the scheduled day. The end time might be on
+		// the next day.
+		prog.FullStartTime = appendEventTime(prog.Day.Date, prog.StartTime)
+		prog.FullEndTime = appendEventTime(prog.Day.Date, prog.EndTime)
+		if prog.FullStartTime.After(prog.FullEndTime) {
+			// EndTime should be after StartTime
+			prog.FullEndTime = prog.FullEndTime.AddDate(0, 0, 1)
+		}
+		prog.CalculatedDuration = prog.FullEndTime.Sub(prog.FullStartTime)
+
+		if _, ok := programs[prog.IdWithTitle.Id]; !ok {
+			programs[prog.IdWithTitle.Id] = &prog
+		}
+		if _, ok := dayToPrograms[prog.Day.Id]; !ok {
+			dayToPrograms[prog.Day.Id] = make([]*VierdaagseProgram, 0)
+		}
+		dayToPrograms[prog.Day.Id] = append(dayToPrograms[prog.Day.Id], &prog)
+	}
+	for dayId := range dayToPrograms {
+		slices.SortFunc(dayToPrograms[dayId], func(a, b *VierdaagseProgram) int {
+			return a.FullStartTime.Compare(b.FullStartTime) // NB: sometimes the SortDate has typo's, so use the interpreted times
+		})
+	}
+
+	return programs, dayToPrograms
 }
 
 func RenderSchedule(everything VierdaagseOverview) {
 	days := SetupDays(everything)
 	//locs := SetupLocations(everything)
-	_ = SetupLocations(everything)
-	//progs := SetupPrograms(everything)
-	_ = SetupPrograms(everything)
+	_, day2Program := SetupPrograms(everything)
 	for _, day := range days {
-		//dayId := day.IdWithTitle.Id
-		_ = day.IdWithTitle.Id
+		dayId := day.IdWithTitle.Id
+		for _, program := range day2Program[dayId] {
+			slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
+				"startTime", program.FullStartTime,
+				"endTime", program.FullEndTime,
+				"duration", program.CalculatedDuration,
+			)
+		}
 	}
 }
+
+// vim: cc=120:

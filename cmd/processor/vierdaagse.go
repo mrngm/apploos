@@ -111,6 +111,10 @@ type VierdaagseProgram struct {
 	// SearchWords
 
 	DatePostedAndUpdated
+
+	FullStartTime      time.Time
+	FullEndTime        time.Time
+	CalculatedDuration time.Duration
 }
 
 type VierdaagsePartner struct {
