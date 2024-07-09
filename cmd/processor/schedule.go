@@ -4,6 +4,7 @@ import (
 	//"bytes"
 	"fmt"
 	"log/slog"
+	"slices"
 )
 
 type Location struct {
@@ -16,10 +17,16 @@ func (l *Location) String() string {
 	return fmt.Sprintf("[%d] %s nChildren: %d", l.Id, l.Title, len(l.Children))
 }
 
-func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
-	//buf := new(bytes.Buffer)
+func SetupDays(everything VierdaagseOverview) []VierdaagseDay {
+	days := make([]VierdaagseDay, len(everything.Days))
+	copy(days, everything.Days)
+	slices.SortFunc(days, func(a, b VierdaagseDay) int {
+		return a.Date.Compare(b.Date)
+	})
+	return days
+}
 
-	// Valkhof parent is
+func SetupLocations(everything VierdaagseOverview) map[int]*Location {
 	locations := make(map[int]*Location)
 	for _, loc := range everything.Locations {
 		if _, ok := locations[loc.Id]; !ok {
@@ -60,5 +67,24 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			}
 		}
 	}
-	return nil, nil
+	return locations
+}
+
+func SetupPrograms(everything VierdaagseOverview) map[int]VierdaagseProgram {
+	programs := make(map[int]VierdaagseProgram)
+	for _, prog := range everything.Programs {
+		if _, ok := programs[prog.IdWithTitle.Id]; !ok {
+			programs[prog.IdWithTitle.Id] = prog
+		}
+	}
+	return programs
+}
+
+func RenderSchedule(everything VierdaagseOverview) {
+	days := SetupDays(everything)
+	locs := SetupLocations(everything)
+	progs := SetupPrograms(everything)
+	for _, day := range days {
+		dayId := day.IdWithTitle.Id
+	}
 }
