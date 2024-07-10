@@ -11,10 +11,11 @@ import (
 )
 
 type Location struct {
-	Id       int
-	Title    string
-	Slug string
-	Children []*Location
+	Id        int
+	Title     string
+	Slug      string
+	HasParent bool
+	Children  []*Location
 }
 
 func (l *Location) String() string {
@@ -45,6 +46,7 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []string)
 		theLoc.Slug = loc.Slug
 		if loc.Parent > 0 {
 			// Sub locations, fill into parent location's Children in separate loop
+			theLoc.HasParent = true
 			continue
 		}
 		parentLocations++
@@ -66,7 +68,7 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []string)
 
 	sortedParents := make([]string, 0, parentLocations)
 	for _, theLoc := range locations {
-		if len(theLoc.Children) > 0 {
+		if len(theLoc.Children) > 0 || !theLoc.HasParent {
 			sortedParents = append(sortedParents, theLoc.Title)
 			// Sort the children based on name
 			slices.SortFunc(theLoc.Children, func(a, b *Location) int {
@@ -139,7 +141,7 @@ func RenderSchedule(everything VierdaagseOverview) {
 	slog.Info("sortedParents", "sortedParents", sortedParents)
 
 	for n, day := range days {
-		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>` + "\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>`+"\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		dayId := day.IdWithTitle.Id
 		// Don't look down, really inefficient loops ahead
 		for _, parentLoc := range sortedParents {
@@ -150,24 +152,24 @@ func RenderSchedule(everything VierdaagseOverview) {
 					break
 				}
 			}
-			fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>` + "\n", locs[theLoc.Id].Slug, theLoc.Title)
+			fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
 			for _, childLoc := range theLoc.Children {
-				fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>` + "\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
-					for _, program := range day2Program[dayId] {
-						if program.Location.Id != childLoc.Id {
-							continue
-						}
-						fmt.Printf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s` +
-							`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>` + "\n",
-							program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
-						/*
+				fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>`+"\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+				for _, program := range day2Program[dayId] {
+					if program.Location.Id != childLoc.Id {
+						continue
+					}
+					fmt.Printf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s`+
+						`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
+						program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
+					/*
 						slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
 							"startTime", program.FullStartTime,
 							"endTime", program.FullEndTime,
 							"duration", program.CalculatedDuration,
 						)
-						*/
-					}
+					*/
+				}
 			}
 			fmt.Print(`  </section>` + "\n")
 		}
