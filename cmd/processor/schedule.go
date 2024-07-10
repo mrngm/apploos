@@ -172,34 +172,71 @@ func RenderSchedule(everything VierdaagseOverview) {
 					break
 				}
 			}
-			fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+			renderedParentEvents := make([]string, 0)
+			renderedEvents := make([]string, 0)
+
 			// Render programs on the parent location
+			even := false
 			for _, program := range day2Program[dayId] {
 				if program.Location.Id != theLoc.Id {
 					continue
 				}
-				fmt.Print(renderEvent(program))
+				renderedParentEvents = append(renderedParentEvents, renderEvent(program, even))
+				even = !even
 			}
+
+			haveRenderedParent := false
+			haveRenderedEvents := false
+			if len(renderedParentEvents) > 0 {
+				if !haveRenderedParent {
+					fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+					haveRenderedParent = true
+				}
+				for _, event := range renderedParentEvents {
+					fmt.Print(event)
+				}
+				haveRenderedEvents = true
+			}
+
 			// Render programs on the child location
 			for _, childLoc := range theLoc.Children {
-				fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>`+"\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
 				for _, program := range day2Program[dayId] {
 					if program.Location.Id != childLoc.Id {
 						continue
 					}
-					fmt.Print(renderEvent(program))
+					renderedEvents = append(renderedEvents, renderEvent(program, even))
+					even = !even
+				}
+				if len(renderedEvents) > 0 {
+					if !haveRenderedParent {
+						fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+						haveRenderedParent = true
+					}
+					fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>`+"\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					for _, event := range renderedEvents {
+						fmt.Print(event)
+					}
+					haveRenderedEvents = true
+					renderedEvents = make([]string, 0)
 				}
 			}
-			fmt.Print(`  </section>` + "\n")
+			if haveRenderedEvents {
+				fmt.Print(`  </section> <!-- ` + theLoc.Title + ` -->` + "\n")
+			}
 		}
 		fmt.Print(`</section>` + "\n")
 	}
 	fmt.Print(htmlSuffix)
 }
 
-func renderEvent(program *VierdaagseProgram) string {
-	return fmt.Sprintf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s`+
+func renderEvent(program *VierdaagseProgram, isEven bool) string {
+	evenClass := "bg-even"
+	if !isEven {
+		evenClass = "bg-odd"
+	}
+	return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s`+
 		`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
+		evenClass,
 		program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
 }
 
