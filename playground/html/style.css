@@ -1,0 +1,138 @@
+* {
+  /* reset ALL the things */
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #f4f4f4;
+  color: black;
+}
+
+h1, h2, h3 {
+  font-size: 14pt;
+  line-height: 1.5em; /* necessary for accurately doing magic with position: sticky-overlaps */
+}
+
+h2, h3 {
+  padding-left: 2vw;
+}
+h3 {
+  overflow-wrap: normal;
+  overflow: hidden;
+  text-wrap: nowrap;
+}
+
+.bg-green {
+  background-color: #2ecc72 !important;
+}
+.bg-blue {
+  background-color: #4169e1 !important;
+}
+.bg-red {
+  background-color: #d46a6a !important;
+}
+.bg-yellow {
+  background-color: #ffd700 !important;
+}
+.bg-even {
+  background-color: #c8d6fe !important;
+}
+.bg-odd {
+  background-color: #99b1f9 !important;
+}
+
+.fg-white {
+  color: white !important;
+}
+
+.horizontal-filler {
+  min-height: 200px;
+}
+
+.sticky-0 {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 100;
+  text-align: center;
+}
+.sticky-1 {
+  position: sticky;
+  top: 1.5em;
+  background: white;
+  z-index: 80;
+}
+.sticky-2 {
+  position: sticky;
+  top: 3em;
+  background: white;
+  z-index: 60;
+}
+
+#main {
+  min-height: 5vh;
+  max-width: 100vw;
+  margin: auto;
+}
+
+.artist {
+  font-weight: bolder;
+}
+
+.event {
+  padding: 0.75ex 0.75ex 1ex 0.5ex;
+}
+
+dt {
+}
+dd {
+  padding-left: 2.5ex;
+}
+h3 ~ dt {
+  padding-left: 6ex;
+}
+
+.summary {
+  font-style: italic;
+  text-align: justify;
+}
+.description {
+  text-align: justify;
+}
+
+label.hide {
+  text-decoration: underline;
+}
+
+dd.description {
+  display: none;
+}
+
+input:checked ~ dd.description {
+  display: block;
+}
+input.meer-toggle {
+  display: none;
+}
+
+label.hide::after {
+  content: '(meer)';
+}
+input:checked ~ dd.summary label.hide::after {
+  content: '(minder)';
+}
+/* Magic CSS to hide/show based on target click
+.show, .hide:target, dd.description {
+  display: none;
+}
+.hide:target + .show, .hide:target ~ dd.description {
+  display: block;
+}
+dd.summary ~ a.hide, dd.summary ~ a.show {
+  padding-left: 2.5ex;
+}
+*/
+
+/* vim: et:ts=2:sw=2:cc=120:
+*/
