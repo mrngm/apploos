@@ -229,15 +229,49 @@ func RenderSchedule(everything VierdaagseOverview) {
 	fmt.Print(htmlSuffix)
 }
 
+func cleanDescription(in string) string {
+	removals := []string{`<p>`, `</p>`, `<br>`}
+	for _, remove := range removals {
+		in = strings.ReplaceAll(in, remove, "")
+	}
+	return strings.TrimSpace(in)
+}
+
 func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	evenClass := "bg-even"
 	if !isEven {
 		evenClass = "bg-odd"
 	}
+
+	programSummary := program.DescriptionShort
+	programDetails := cleanDescription(program.Description)
+
+	if len(programDetails) < 3 {
+		slog.Info("Removed programDetails after cleaning, length less than 3", "program.Description", program.Description, "cleaned_programDetails", programDetails)
+		programDetails = ""
+	}
+
+	if len(programSummary) == 0 && len(programDetails) > 0 {
+		firstSentence, theRest, ok := strings.Cut(programDetails, ".")
+		if !ok {
+			// Swap summary and details
+			programSummary, programDetails = programDetails, programSummary
+		} else {
+			programSummary = firstSentence + "."
+			programDetails = theRest
+		}
+	}
+
+	if len(programDetails) == 0 || program.Title == programDetails {
+		return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s</dd>`+"\n",
+			evenClass,
+			program.StartTime, program.EndTime, program.Title, programSummary)
+	}
+
 	return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s`+
-		`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
+		` <a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
 		evenClass,
-		program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
+		program.StartTime, program.EndTime, program.Title, programSummary, programDetails)
 }
 
 func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
