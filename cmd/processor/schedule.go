@@ -132,6 +132,25 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 	return programs, dayToPrograms
 }
 
+var htmlPrefix = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>${LOCATION} - Vierdaagsefeesten ${YEAR}</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    </style>
+  </head>
+  <body>
+    <a name="top"></a>
+    <div id="main" class="container">
+`
+var htmlSuffix = `
+    </div>
+  </body>
+</html>
+`
+
 func RenderSchedule(everything VierdaagseOverview) {
 	// Day -> Location (parent) -> Lcations (child) -> Event
 	days := SetupDays(everything)
@@ -140,6 +159,7 @@ func RenderSchedule(everything VierdaagseOverview) {
 
 	slog.Info("sortedParents", "sortedParents", sortedParents)
 
+	fmt.Print(htmlPrefix)
 	for n, day := range days {
 		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>`+"\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		dayId := day.IdWithTitle.Id
@@ -153,28 +173,42 @@ func RenderSchedule(everything VierdaagseOverview) {
 				}
 			}
 			fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+			// Render programs on the parent location
+			for _, program := range day2Program[dayId] {
+				if program.Location.Id != theLoc.Id {
+					continue
+				}
+				fmt.Print(renderEvent(program))
+			}
+			// Render programs on the child location
 			for _, childLoc := range theLoc.Children {
 				fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>`+"\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
 				for _, program := range day2Program[dayId] {
 					if program.Location.Id != childLoc.Id {
 						continue
 					}
-					fmt.Printf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s`+
-						`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
-						program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
-					/*
-						slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
-							"startTime", program.FullStartTime,
-							"endTime", program.FullEndTime,
-							"duration", program.CalculatedDuration,
-						)
-					*/
+					fmt.Print(renderEvent(program))
 				}
 			}
 			fmt.Print(`  </section>` + "\n")
 		}
 		fmt.Print(`</section>` + "\n")
 	}
+	fmt.Print(htmlSuffix)
+}
+
+func renderEvent(program *VierdaagseProgram) string {
+	return fmt.Sprintf(`    <div class="event"><h4><time>%s</time> - <time>%s</time></h4><dd class="artist">%s</dd><dd class="summary">%s`+
+		`<a id="meer" href="#meer" class="hide">(meer)</a> <a id="minder" href="#minder" class="show">(minder)</a></dd><dd class="description">%s</dd></div>`+"\n",
+		program.StartTime, program.EndTime, program.Title, program.DescriptionShort, program.Description)
+}
+
+func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
+	slog.Info("Program details", "day", day.IdWithTitle.Title, "eventTitle", program.IdWithTitle.Title,
+		"startTime", program.FullStartTime,
+		"endTime", program.FullEndTime,
+		"duration", program.CalculatedDuration,
+	)
 }
 
 // vim: cc=120:
