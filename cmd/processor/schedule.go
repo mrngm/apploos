@@ -146,7 +146,6 @@ var htmlPrefix = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width" />
     <title>${LOCATION} - Vierdaagsefeesten ${YEAR}</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
-    </style>
   </head>
   <body>
     <a name="top"></a>
