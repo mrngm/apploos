@@ -263,7 +263,7 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	}
 
 	if len(programDetails) == 0 || program.Title == programDetails {
-		return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s</dd>`+"\n",
+		return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
 			evenClass,
 			program.StartTime, program.EndTime, program.Title, programSummary)
 	}
