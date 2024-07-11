@@ -321,18 +321,29 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 		}
 	}
 
+	ticketAddition := ""
+	if program.TicketsPrice > 0 {
+		if len(program.TicketsLink) > 0 {
+			ticketAddition = ` (<a target="_blank" href="` + program.TicketsLink + `" title="Ticket kopen voor ` + program.Title + `">€</a>)`
+		} else {
+			ticketAddition = ` (€)`
+		}
+		if program.TicketsSoldOut {
+			ticketAddition = ticketAddition + ` (uitverkocht)`
+		}
+	}
 	if len(programDetails) == 0 || program.Title == programDetails {
 		program.DataQualityIssues |= DQIOnlySummary
-		return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
+		return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
 			evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
-			program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, programSummary)
+			program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, ticketAddition, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4>`+
+	return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
 		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
 		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
 		evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
-		program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, program.IdWithTitle.Id, programSummary,
+		program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,
 		programDetails)
 }
