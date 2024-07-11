@@ -270,15 +270,16 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	}
 
 	if len(programDetails) == 0 || program.Title == programDetails {
-		return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
-			evenClass,
-			program.StartTime, program.EndTime, program.Title, programSummary)
+		return fmt.Sprintf(`    <div class="event %s"><h4><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
+			evenClass, program.FullStartTime.Format(time.RFC3339), program.StartTime,
+			program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event %s"><h4><time>%s</time> - <time>%s</time> %s</h4><input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s`+
-		` <label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
-		evenClass,
-		program.StartTime, program.EndTime, program.Title, program.IdWithTitle.Id, programSummary,
+	return fmt.Sprintf(`    <div class="event %s"><h4><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4>`+
+		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
+		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
+		evenClass, program.FullStartTime.Format(time.RFC3339), program.StartTime,
+		program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,
 		programDetails)
 }
