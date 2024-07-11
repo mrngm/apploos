@@ -173,7 +173,7 @@ func RenderSchedule(everything VierdaagseOverview) {
 
 	fmt.Print(htmlPrefix)
 	for n, day := range days {
-		roze := onRozeWoensdagFromTime(day.Date.Add(1 * time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY) * time.Hour))
+		roze := onRozeWoensdagFromTime(day.Date.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour))
 		dayClass := "bg-red"
 		locationClass := "bg-blue"
 		subLocationClass := "bg-white"
@@ -184,8 +184,8 @@ func RenderSchedule(everything VierdaagseOverview) {
 			locationClass = "bg-main-roze"
 			subLocationClass = "bg-sub-roze"
 		}
-		fmt.Printf(`<section class="bg-red"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
-			dayClass, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		fmt.Printf(`<section class="" id="day-%d"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
+			n+1, dayClass, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		dayId := day.IdWithTitle.Id
 		// Don't look down, really inefficient loops ahead
 		for _, parentLoc := range sortedParents {
@@ -216,7 +216,7 @@ func RenderSchedule(everything VierdaagseOverview) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+					fmt.Printf(`  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
 					haveRenderedParent = true
 				}
 				for _, event := range renderedParentEvents {
@@ -239,10 +239,10 @@ func RenderSchedule(everything VierdaagseOverview) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+						fmt.Printf(`  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
 						haveRenderedParent = true
 					}
-					fmt.Printf(`    <h3 class="sticky-2 %s" id="lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					fmt.Printf(`    <h3 class="sticky-2 %s" id="day-%d-lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, n+1, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
 					for _, event := range renderedEvents {
 						fmt.Print(event)
 					}
