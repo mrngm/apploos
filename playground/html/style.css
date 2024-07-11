@@ -138,5 +138,17 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 }
 */
 
+#testing-banner {
+  position: fixed;
+  min-height: 1.5em;
+  font-size: 16pt;
+  background-color: orange;
+  color: white;
+  font-variant: bold;
+  bottom: 0;
+  z-index: 120;
+  padding: 0.5ex;
+}
+
 /* vim: et:ts=2:sw=2:cc=120:
 */

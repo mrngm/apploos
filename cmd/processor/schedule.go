@@ -151,6 +151,10 @@ var htmlSuffix = `
 </html>
 `
 
+var testingBanner = `
+<div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>
+`
+
 func RenderSchedule(everything VierdaagseOverview) {
 	// Day -> Location (parent) -> Lcations (child) -> Event
 	days := SetupDays(everything)
@@ -225,6 +229,9 @@ func RenderSchedule(everything VierdaagseOverview) {
 			}
 		}
 		fmt.Print(`</section>` + "\n")
+	}
+	if !*prod {
+		fmt.Print(testingBanner + "\n")
 	}
 	fmt.Print(htmlSuffix)
 }

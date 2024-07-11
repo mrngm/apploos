@@ -9,6 +9,7 @@ import (
 
 var (
 	jsonFile = flag.String("json", "all.json", "Specifies the filename to read in JSON format")
+	prod     = flag.Bool("prod", false, "When given, don't show the TESTING banner")
 )
 
 func main() {
