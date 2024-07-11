@@ -172,6 +172,9 @@ func RenderSchedule(everything VierdaagseOverview) {
 	eventIssues := make([]string, 0)
 
 	fmt.Print(htmlPrefix)
+	if !*prod {
+		fmt.Print(testingBanner + "\n")
+	}
 	for n, day := range days {
 		roze := onRozeWoensdagFromTime(day.Date.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour))
 		dayClass := "bg-red"
@@ -257,7 +260,6 @@ func RenderSchedule(everything VierdaagseOverview) {
 		fmt.Print(`</section>` + "\n")
 	}
 	if !*prod {
-		fmt.Print(testingBanner + "\n")
 		fmt.Print(`<!-- summarized event issues` + "\n")
 		slices.Sort(eventIssues)
 		for _, eventIssue := range eventIssues {

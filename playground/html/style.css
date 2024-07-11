@@ -109,6 +109,13 @@ h3 {
   margin-right: .5em;
   max-width: 95vw;
 }
+#main > section:last-child {
+  margin-right: 0em;
+}
+
+section > section {
+  margin-bottom: 2ex;
+}
 
 .artist {
   font-weight: bolder;
