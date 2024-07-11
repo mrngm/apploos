@@ -299,14 +299,22 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 
 	if len(programSummary) == 0 && len(programDetails) > 0 {
 		program.DataQualityIssues |= DQISummaryEmptyish
-		firstSentence, theRest, ok := strings.Cut(programDetails, ".")
+		lowestIndex := len(programDetails)
+		lowestSeparator := "."
+		for _, sep := range []string{".", "!", "?"} {
+			if idx := strings.Index(programDetails, sep+" "); idx > -1 && idx < lowestIndex {
+				lowestIndex = idx
+				lowestSeparator = sep
+			}
+		}
+		firstSentence, theRest, ok := strings.Cut(programDetails, lowestSeparator+" ")
 		if !ok {
 			// Swap summary and details
 			program.DataQualityIssues |= DQINeededSummaryDescriptionSwap
 			programSummary, programDetails = programDetails, programSummary
 		} else {
 			program.DataQualityIssues |= DQISummaryFromDescription
-			programSummary = firstSentence + "."
+			programSummary = firstSentence + lowestSeparator
 			programDetails = theRest
 		}
 	}
