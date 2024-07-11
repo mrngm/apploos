@@ -174,7 +174,19 @@ func RenderSchedule(everything VierdaagseOverview) {
 
 	fmt.Print(htmlPrefix)
 	for n, day := range days {
-		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>`+"\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		roze := onRozeWoensdagFromTime(day.Date.Add(1 * time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY) * time.Hour))
+		dayClass := "bg-red"
+		locationClass := "bg-blue"
+		subLocationClass := "bg-white"
+		dayPrefix := ""
+		if roze {
+			dayClass = "bg-roze"
+			dayPrefix = "Roze "
+			locationClass = "bg-main-roze"
+			subLocationClass = "bg-sub-roze"
+		}
+		fmt.Printf(`<section class="bg-red"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
+			dayClass, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		dayId := day.IdWithTitle.Id
 		// Don't look down, really inefficient loops ahead
 		for _, parentLoc := range sortedParents {
@@ -205,7 +217,7 @@ func RenderSchedule(everything VierdaagseOverview) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+					fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", locs[theLoc.Id].Slug, locationClass, theLoc.Title)
 					haveRenderedParent = true
 				}
 				for _, event := range renderedParentEvents {
@@ -228,10 +240,10 @@ func RenderSchedule(everything VierdaagseOverview) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 bg-blue">%s</h2>`+"\n", locs[theLoc.Id].Slug, theLoc.Title)
+						fmt.Printf(`  <section id="lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", locs[theLoc.Id].Slug, locationClass, theLoc.Title)
 						haveRenderedParent = true
 					}
-					fmt.Printf(`    <h3 class="sticky-2" id="lokatie-%s-%s">%s</h3>`+"\n", locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					fmt.Printf(`    <h3 class="sticky-2 %s" id="lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
 					for _, event := range renderedEvents {
 						fmt.Print(event)
 					}
@@ -267,8 +279,14 @@ func cleanDescription(in string) string {
 
 func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	evenClass := "bg-even"
+	if onRozeWoensdag(program) {
+		evenClass = "bg-even-roze"
+	}
 	if !isEven {
 		evenClass = "bg-odd"
+		if onRozeWoensdag(program) {
+			evenClass = "bg-odd-roze"
+		}
 	}
 
 	programSummary := program.DescriptionShort
@@ -325,8 +343,16 @@ func formatProgramSlug(program *VierdaagseProgram) string {
 	return fmt.Sprintf("%s-%d", program.Slug, program.IdWithTitle.Id)
 }
 
-func onRozeWoensdag(program *VierdaagseProgram) string {
-	return ""
+var (
+	RozeWoensdagStart = time.Date(2024, 7, 17, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
+	RozeWoensdagEnd   = RozeWoensdagStart.AddDate(0, 0, 1).Add(-1 * time.Nanosecond)
+)
+
+func onRozeWoensdag(program *VierdaagseProgram) bool {
+	return onRozeWoensdagFromTime(program.FullStartTime) && onRozeWoensdagFromTime(program.FullEndTime)
+}
+func onRozeWoensdagFromTime(cmp time.Time) bool {
+	return cmp.After(RozeWoensdagStart) && cmp.Before(RozeWoensdagEnd)
 }
 
 // vim: cc=120:

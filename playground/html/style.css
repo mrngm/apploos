@@ -45,6 +45,18 @@ h3 {
 .bg-roze {
   background-color: #ff10f0 !important;
 }
+.bg-even-roze {
+  background-color: #fe5ef7 !important;
+}
+.bg-odd-roze {
+  background-color: #f200e8 !important;
+}
+.bg-main-roze {
+  background-color: #d600cc !important;
+}
+.bg-sub-roze {
+  background-color: #fe6ef7 !important;
+}
 
 .fg-white {
   color: white !important;
