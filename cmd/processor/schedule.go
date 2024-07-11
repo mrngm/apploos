@@ -106,12 +106,19 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 	for _, prog := range everything.Programs {
 		prog := prog
 		// Calculate full start time and full end time. The start time is on the scheduled day. The end time might be on
-		// the next day.
+		// the next day. Thanks to @yorickvP, we use ROLLOVER_HOUR_FROM_START_OF_DAY to determine if the event should be
+		// shifted to the next day
 		prog.FullStartTime = appendEventTime(prog.Day.Date, prog.StartTime)
 		prog.FullEndTime = appendEventTime(prog.Day.Date, prog.EndTime)
+		if prog.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+			prog.FullStartTime = prog.FullStartTime.AddDate(0, 0, 1)
+		}
+		if prog.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+			prog.FullEndTime = prog.FullEndTime.AddDate(0, 0, 1)
+		}
 		if prog.FullStartTime.After(prog.FullEndTime) {
 			// EndTime should be after StartTime
-			prog.FullEndTime = prog.FullEndTime.AddDate(0, 0, 1)
+			prog.DataQualityIssues |= DQIEndTimeBeforeStart
 		}
 		prog.CalculatedDuration = prog.FullEndTime.Sub(prog.FullStartTime)
 
@@ -163,6 +170,8 @@ func RenderSchedule(everything VierdaagseOverview) {
 
 	slog.Info("sortedParents", "sortedParents", sortedParents)
 
+	eventIssues := make([]string, 0)
+
 	fmt.Print(htmlPrefix)
 	for n, day := range days {
 		fmt.Printf(`<section class="bg-red"><h1 class="bg-red sticky-0">Dag %d, <time datetime="%s">%s</time></h1>`+"\n", n+1, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
@@ -187,6 +196,9 @@ func RenderSchedule(everything VierdaagseOverview) {
 				}
 				renderedParentEvents = append(renderedParentEvents, renderEvent(program, even))
 				even = !even
+				if eventIssue := DQIToString(program.DataQualityIssues); len(eventIssue) > 0 {
+					eventIssues = append(eventIssues, formatProgramSlug(program)+": "+eventIssue)
+				}
 			}
 
 			haveRenderedParent := false
@@ -210,6 +222,9 @@ func RenderSchedule(everything VierdaagseOverview) {
 					}
 					renderedEvents = append(renderedEvents, renderEvent(program, even))
 					even = !even
+					if eventIssue := DQIToString(program.DataQualityIssues); len(eventIssue) > 0 {
+						eventIssues = append(eventIssues, formatProgramSlug(program)+": "+eventIssue)
+					}
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
@@ -232,6 +247,12 @@ func RenderSchedule(everything VierdaagseOverview) {
 	}
 	if !*prod {
 		fmt.Print(testingBanner + "\n")
+		fmt.Print(`<!-- summarized event issues` + "\n")
+		slices.Sort(eventIssues)
+		for _, eventIssue := range eventIssues {
+			fmt.Print(`    ` + eventIssue + "\n")
+		}
+		fmt.Print(`end summarized event issues -->` + "\n")
 	}
 	fmt.Print(htmlSuffix)
 }
@@ -254,31 +275,36 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	programDetails := cleanDescription(program.Description)
 
 	if len(programDetails) < 3 {
+		program.DataQualityIssues |= DQIDescriptionEmptyish
 		slog.Info("Removed programDetails after cleaning, length less than 3", "program.Description", program.Description, "cleaned_programDetails", programDetails)
 		programDetails = ""
 	}
 
 	if len(programSummary) == 0 && len(programDetails) > 0 {
+		program.DataQualityIssues |= DQISummaryEmptyish
 		firstSentence, theRest, ok := strings.Cut(programDetails, ".")
 		if !ok {
 			// Swap summary and details
+			program.DataQualityIssues |= DQINeededSummaryDescriptionSwap
 			programSummary, programDetails = programDetails, programSummary
 		} else {
+			program.DataQualityIssues |= DQISummaryFromDescription
 			programSummary = firstSentence + "."
 			programDetails = theRest
 		}
 	}
 
 	if len(programDetails) == 0 || program.Title == programDetails {
-		return fmt.Sprintf(`    <div class="event %s"><h4><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
-			evenClass, program.FullStartTime.Format(time.RFC3339), program.StartTime,
+		program.DataQualityIssues |= DQIOnlySummary
+		return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4><dd class="summary">%s</dd></div>`+"\n",
+			evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
 			program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event %s"><h4><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4>`+
+	return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s</h4>`+
 		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
 		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
-		evenClass, program.FullStartTime.Format(time.RFC3339), program.StartTime,
+		evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
 		program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,
 		programDetails)
@@ -290,6 +316,17 @@ func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
 		"endTime", program.FullEndTime,
 		"duration", program.CalculatedDuration,
 	)
+}
+
+func formatProgramSlug(program *VierdaagseProgram) string {
+	if program.Slug == "" {
+		return fmt.Sprintf("unknown-slug-%d", program.IdWithTitle.Id)
+	}
+	return fmt.Sprintf("%s-%d", program.Slug, program.IdWithTitle.Id)
+}
+
+func onRozeWoensdag(program *VierdaagseProgram) string {
+	return ""
 }
 
 // vim: cc=120:

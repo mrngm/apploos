@@ -1,8 +1,50 @@
 package main
 
 import (
+	"strings"
 	"time"
 )
+
+const (
+	ROLLOVER_HOUR_FROM_START_OF_DAY = 7 // h/t @yorickvP
+)
+
+// type DQI stands for DataQualityIssue
+type DQI int
+
+const (
+	DQINone DQI = 1 << iota
+	DQIEndTimeBeforeStart
+	DQISummaryEmptyish
+	DQIDescriptionEmptyish
+	DQINeededSummaryDescriptionSwap
+	DQISummaryFromDescription
+	DQIOnlySummary
+)
+
+// DQIToString formats the encapsulated quality issues into a slug-ish string, separated with spaces
+func DQIToString(issues DQI) string {
+	ret := make([]string, 0, 16)
+	if issues&DQIEndTimeBeforeStart != 0 {
+		ret = append(ret, "end-time-before-start")
+	}
+	if issues&DQISummaryEmptyish != 0 {
+		ret = append(ret, "summary-emptyish")
+	}
+	if issues&DQIDescriptionEmptyish != 0 {
+		ret = append(ret, "description-emptyish")
+	}
+	if issues&DQINeededSummaryDescriptionSwap != 0 {
+		ret = append(ret, "swapped-summary-description")
+	}
+	if issues&DQISummaryFromDescription != 0 {
+		ret = append(ret, "created-summary-from-description")
+	}
+	if issues&DQIOnlySummary != 0 {
+		ret = append(ret, "only-summary")
+	}
+	return strings.Join(ret, ", ")
+}
 
 type VierdaagseOverview struct {
 	General       VierdaagseGeneral
@@ -115,6 +157,7 @@ type VierdaagseProgram struct {
 	FullStartTime      time.Time
 	FullEndTime        time.Time
 	CalculatedDuration time.Duration
+	DataQualityIssues  DQI
 }
 
 type VierdaagsePartner struct {

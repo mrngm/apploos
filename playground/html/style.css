@@ -42,6 +42,9 @@ h3 {
 .bg-odd {
   background-color: #99b1f9 !important;
 }
+.bg-roze {
+  background-color: #ff10f0 !important;
+}
 
 .fg-white {
   color: white !important;
