@@ -133,7 +133,7 @@ func main() {
 		checksum := fmt.Sprintf("%x", checksumWriter.Sum256())
 		logger.Info("sha256(source)", "sum", checksum)
 
-		written, err := util.SaveToDisk(ctx, *saveDir, checksum+".blob", srcContents, *cleanupTmp)
+		written, err := util.SaveToDisk(ctx, *saveDir, checksum+".blob", srcContents, *cleanupTmp, false)
 		if err != nil {
 			logger.Error("failed saving to disk", "err", err)
 		}

@@ -17,7 +17,7 @@ import (
 // (or none) of the data was written, and an error message saying what failed exactly.
 //
 // If cleanupTmp is given, it will remove temporary files regardless of the success of this function.
-func SaveToDisk(ctx context.Context, saveDir string, name string, data []byte, cleanupTmp bool) (int, error) {
+func SaveToDisk(ctx context.Context, saveDir string, name string, data []byte, cleanupTmp bool, allowOverwrite bool) (int, error) {
 	fp := filepath.Join(saveDir, name)
 	slog.Debug("SaveToDisk", "fn", name, "dataLen", len(data), "dir", saveDir, "fullPath", fp)
 
@@ -80,19 +80,21 @@ func SaveToDisk(ctx context.Context, saveDir string, name string, data []byte, c
 	}
 	shouldCloseTmpFile = false
 
-	// Check that the destination file doesn't exist. We do this after writing to the temporary file (and syncing) such
-	// that the data itself is saved to disk, regardless of the possible existence of the destination. If we would first
-	// check existence, data may be lost if the caller doesn't handle such cases.
-	tryDest, err := os.OpenFile(fp, os.O_RDONLY, 0000) // perm is irrelevant
-	if err == nil {
-		closeErr := tryDest.Close()
-		slog.Error("SaveToDisk failed, destination file already exists, leaving tmpfile", "fn", fp, "closeErr", closeErr, "dir", saveDir, "tmpFn", fnTmp.Name(), "bytes_written", n)
-		if cleanupTmp {
-			return n, fmt.Errorf("destination file %q already exists, preventing write, removing tmpFile %q in saveDir %q, closeErr: %v", fp, fnTmp.Name(), saveDir, closeErr)
+	if !allowOverwrite {
+		// Check that the destination file doesn't exist. We do this after writing to the temporary file (and syncing) such
+		// that the data itself is saved to disk, regardless of the possible existence of the destination. If we would first
+		// check existence, data may be lost if the caller doesn't handle such cases.
+		tryDest, err := os.OpenFile(fp, os.O_RDONLY, 0000) // perm is irrelevant
+		if err == nil {
+			closeErr := tryDest.Close()
+			slog.Error("SaveToDisk failed, destination file already exists, leaving tmpfile", "fn", fp, "closeErr", closeErr, "dir", saveDir, "tmpFn", fnTmp.Name(), "bytes_written", n)
+			if cleanupTmp {
+				return n, fmt.Errorf("destination file %q already exists, preventing write, removing tmpFile %q in saveDir %q, closeErr: %v", fp, fnTmp.Name(), saveDir, closeErr)
+			}
+			return n, fmt.Errorf("destination file %q already exists, preventing write, leaving tmpFile %q in saveDir %q, closeErr: %v", fp, fnTmp.Name(), saveDir, closeErr)
 		}
-		return n, fmt.Errorf("destination file %q already exists, preventing write, leaving tmpFile %q in saveDir %q, closeErr: %v", fp, fnTmp.Name(), saveDir, closeErr)
+		// Proposed destination doesn't exist after we just synced the containing directory. Rename is likely to succeed.
 	}
-	// Proposed destination doesn't exist after we just synced the containing directory. Rename is likely to succeed.
 
 	if err := os.Rename(fnTmp.Name(), fp); err != nil {
 		slog.Error("SaveToDisk(rename) failed", "err", err, "bytes_written", n, "dir", saveDir, "oldpath", fnTmp.Name(), "newpath", fp)

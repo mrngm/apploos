@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"flag"
@@ -11,15 +12,19 @@ import (
 	"path/filepath"
 	"slices"
 	"time"
+
+	"github.com/mrngm/apploos/util"
 )
 
 var (
-	jsonFile = flag.String("json", "", "Specifies the filename to read in Vierdaagse JSON format")
-	icalFile = flag.String("ical", "", "Specifies the filename to read in Thiemeloods iCal XML format")
-	prod     = flag.Bool("prod", false, "When given, don't show the TESTING banner")
-	storage  = flag.String("storage", "", "Scan this directory for collecting Vierdaagse JSON files")
-	pattern  = flag.String("pattern", "*.blob", "Only consider these files to be actual data files, see path.Match")
-	out      = flag.String("out", "-", "Write to this file, or - for standard output")
+	jsonFile   = flag.String("json", "", "Specifies the filename to read in Vierdaagse JSON format")
+	icalFile   = flag.String("ical", "", "Specifies the filename to read in Thiemeloods iCal XML format")
+	prod       = flag.Bool("prod", false, "When given, don't show the TESTING banner")
+	storage    = flag.String("storage", "", "Scan this directory for collecting Vierdaagse JSON files")
+	pattern    = flag.String("pattern", "*.blob", "Only consider these files to be actual data files, see path.Match")
+	out        = flag.String("out", "-", "Write to this file, or - for standard output")
+	outDir     = flag.String("outDir", "", "Write to this directory, or use current working directory")
+	cleanupTmp = flag.Bool("cleanTmp", false, "Cleanup temporary files after either a successful or unsuccessful write")
 )
 
 func readJsonFile(fn string) (VierdaagseOverview, error) {
@@ -123,6 +128,15 @@ func readStorageDir() (dirModTime time.Time, fileModTime time.Time, recentFile s
 func main() {
 	flag.Parse()
 
+	if *outDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			slog.Error("could not get working directory", "err", err)
+			os.Exit(1)
+		}
+		*outDir = cwd
+	}
+
 	everything := VierdaagseOverview{}
 	if len(*jsonFile) > 0 {
 		try, err := readJsonFile(*jsonFile)
@@ -165,6 +179,12 @@ func main() {
 		fmt.Fprint(os.Stdout, string(output))
 		return
 	}
+
+	written, err := util.SaveToDisk(context.TODO(), *outDir, *out, output, *cleanupTmp, true)
+	if err != nil {
+		slog.Error("failed saving to disk", "err", err)
+	}
+	slog.Debug("SaveToDisk returns", "written", written, "err", err)
 }
 
 // vim: cc=120:
