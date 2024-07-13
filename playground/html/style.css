@@ -98,15 +98,16 @@ h3 {
   overflow-x: scroll;
   width: 100vw;
   scroll-snap-type: x mandatory;
+  padding: 0 2.5vw;
+  gap: 0.5em;
 }
 #main > section {
   height: 100vh;
   overflow-y: scroll;
   overflow-x: hidden;
   flex: 0 0 100vw;
-  scroll-snap-align: start;
+  scroll-snap-align: center;
   scroll-snap-stop: always;
-  margin-right: .5em;
   max-width: 95vw;
 }
 #main > section:last-child {
@@ -186,6 +187,7 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
   color: white;
   font-variant: bold;
   bottom: 0;
+  left: 0;
   z-index: 120;
   padding: 0.5ex;
 }
