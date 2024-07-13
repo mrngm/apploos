@@ -37,6 +37,11 @@ h3 {
 .day > h1 {
   background-color: #d46a6a !important;
 }
+.day > h1 a {
+    display: block;
+    color: black !important;
+    text-decoration: none;
+}
 .bg-yellow {
   background-color: #ffd700 !important;
 }
@@ -98,6 +103,7 @@ h3 {
   overflow-x: scroll;
   width: 100vw;
   scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
   padding: 0 2.5vw;
   gap: 0.5em;
 }

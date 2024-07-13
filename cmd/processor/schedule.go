@@ -192,8 +192,8 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			dayPrefix = "Roze "
 			daySectionClass = "roze"
 		}
-		_, err = fmt.Fprintf(buf, `<section class="%s day" id="day-%d"><h1 class="sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
-			daySectionClass, n+1, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		_, err = fmt.Fprintf(buf, `<section class="%s day" id="day-%d"><h1 class="sticky-0"><a href="#day-%d">Dag %d, %s<time datetime="%s">%s</time></a></h1>`+"\n",
+			daySectionClass, n+1, n+1, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		if err != nil {
 			return nil, err
 		}
