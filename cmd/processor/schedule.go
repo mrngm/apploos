@@ -140,7 +140,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 }
 
 var htmlPrefix = `<!DOCTYPE html>
-<html>
+<html lang="nl">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
