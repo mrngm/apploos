@@ -67,6 +67,9 @@ type VierdaagseOverview struct {
 	// Onboarding    VierdaagseOnboarding // TODO
 	// Ads           VierdaagseAds // TODO
 	// Coupons       VierdaagseCoupons // TODO
+
+	DirModTime  time.Time
+	FileModTime time.Time
 }
 
 type VierdaagseGeneral struct {

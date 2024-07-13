@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"bytes"
+	"bytes"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -161,7 +161,10 @@ var testingBanner = `
 <div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>
 `
 
-func RenderSchedule(everything VierdaagseOverview) {
+func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	var err error
+
 	// Day -> Location (parent) -> Lcations (child) -> Event
 	days := SetupDays(everything)
 	locs, sortedParents := SetupLocations(everything)
@@ -171,9 +174,15 @@ func RenderSchedule(everything VierdaagseOverview) {
 
 	eventIssues := make([]string, 0)
 
-	fmt.Print(htmlPrefix)
+	_, err = fmt.Fprint(buf, htmlPrefix)
+	if err != nil {
+		return nil, err
+	}
 	if !*prod {
-		fmt.Print(testingBanner + "\n")
+		_, err = fmt.Fprint(buf, testingBanner+"\n")
+		if err != nil {
+			return nil, err
+		}
 	}
 	for n, day := range days {
 		roze := onRozeWoensdagFromTime(day.Date.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour))
@@ -187,8 +196,11 @@ func RenderSchedule(everything VierdaagseOverview) {
 			locationClass = "bg-main-roze"
 			subLocationClass = "bg-sub-roze"
 		}
-		fmt.Printf(`<section class="" id="day-%d"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
+		_, err = fmt.Fprintf(buf, `<section class="" id="day-%d"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
 			n+1, dayClass, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		if err != nil {
+			return nil, err
+		}
 		dayId := day.IdWithTitle.Id
 		// Don't look down, really inefficient loops ahead
 		for _, parentLoc := range sortedParents {
@@ -219,11 +231,17 @@ func RenderSchedule(everything VierdaagseOverview) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					fmt.Printf(`  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+					if err != nil {
+						return nil, err
+					}
 					haveRenderedParent = true
 				}
 				for _, event := range renderedParentEvents {
-					fmt.Print(event)
+					_, err = fmt.Fprint(buf, event)
+					if err != nil {
+						return nil, err
+					}
 				}
 				haveRenderedEvents = true
 			}
@@ -242,32 +260,66 @@ func RenderSchedule(everything VierdaagseOverview) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						fmt.Printf(`  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+						if err != nil {
+							return nil, err
+						}
 						haveRenderedParent = true
 					}
-					fmt.Printf(`    <h3 class="sticky-2 %s" id="day-%d-lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, n+1, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					_, err = fmt.Fprintf(buf, `    <h3 class="sticky-2 %s" id="day-%d-lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, n+1, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					if err != nil {
+						return nil, err
+					}
 					for _, event := range renderedEvents {
-						fmt.Print(event)
+						_, err = fmt.Fprint(buf, event)
+						if err != nil {
+							return nil, err
+						}
 					}
 					haveRenderedEvents = true
 					renderedEvents = make([]string, 0)
 				}
 			}
 			if haveRenderedEvents {
-				fmt.Print(`  </section> <!-- ` + theLoc.Title + ` -->` + "\n")
+				_, err = fmt.Fprint(buf, `  </section> <!-- `+theLoc.Title+` -->`+"\n")
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
-		fmt.Print(`</section>` + "\n")
+		_, err = fmt.Fprint(buf, `</section>`+"\n")
+		if err != nil {
+			return nil, err
+		}
 	}
 	if !*prod {
-		fmt.Print(`<!-- summarized event issues` + "\n")
+		_, err = fmt.Fprint(buf, `<!-- summarized event issues`+"\n")
+		if err != nil {
+			return nil, err
+		}
 		slices.Sort(eventIssues)
 		for _, eventIssue := range eventIssues {
-			fmt.Print(`    ` + eventIssue + "\n")
+			_, err = fmt.Fprint(buf, `    `+eventIssue+"\n")
+			if err != nil {
+				return nil, err
+			}
 		}
-		fmt.Print(`end summarized event issues -->` + "\n")
+		_, err = fmt.Fprint(buf, `end summarized event issues -->`+"\n")
+		if err != nil {
+			return nil, err
+		}
 	}
-	fmt.Print(htmlSuffix)
+	if !everything.DirModTime.IsZero() && !everything.FileModTime.IsZero() {
+		_, err = fmt.Fprintf(buf, `<!-- dir: %s, file: %s -->`+"\n", everything.DirModTime.Format(time.RFC3339), everything.FileModTime.Format(time.RFC3339))
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = fmt.Fprint(buf, htmlSuffix)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func cleanDescription(in string) string {
