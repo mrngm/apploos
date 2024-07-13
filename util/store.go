@@ -17,6 +17,8 @@ import (
 // (or none) of the data was written, and an error message saying what failed exactly.
 //
 // If cleanupTmp is given, it will remove temporary files regardless of the success of this function.
+//
+// Temporary files are chmodded to 0644 by default.
 func SaveToDisk(ctx context.Context, saveDir string, name string, data []byte, cleanupTmp bool, allowOverwrite bool) (int, error) {
 	fp := filepath.Join(saveDir, name)
 	slog.Debug("SaveToDisk", "fn", name, "dataLen", len(data), "dir", saveDir, "fullPath", fp)
@@ -55,6 +57,10 @@ func SaveToDisk(ctx context.Context, saveDir string, name string, data []byte, c
 			}
 		}
 	}()
+
+	if err := fnTmp.Chmod(0644); err != nil {
+		slog.Error("SaveToDisk(fnTmp.Chmod) failed to change to 0644", "err", err, "dir", saveDir, "fnTmp", fnTmp.Name())
+	}
 
 	n, err := fnTmp.Write(data)
 	if err != nil {
