@@ -140,10 +140,12 @@ h3 ~ dt {
   font-style: italic;
   text-align: justify;
   line-height: 1.5;
+  hyphens: auto;
 }
 .description {
   text-align: justify;
   line-height: 1.5;
+  hyphens: auto;
 }
 
 label.hide {
