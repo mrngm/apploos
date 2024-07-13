@@ -61,14 +61,16 @@ func readICalFile(fn string) (ICalendar, error) {
 			if startTime, err := time.ParseInLocation("2006-01-02T15:04:05", event.StartTime, loc); err == nil {
 				calendar.Events[i].FullStartTime = startTime
 			} else {
-				slog.Error("parsing starttime failed", "err", err)
+				//slog.Error("parsing starttime failed (ignoring event)", "err", err, "event", event)
+				continue
 			}
 		}
 		if loc, err := time.LoadLocation(event.EndTimeTZ); err == nil {
 			if EndTime, err := time.ParseInLocation("2006-01-02T15:04:05", event.EndTime, loc); err == nil {
 				calendar.Events[i].FullEndTime = EndTime
 			} else {
-				slog.Error("parsing endtime failed", "err", err)
+				//slog.Error("parsing endtime failed, assuming endtime as startime + 1h", "err", err, "event", event)
+				calendar.Events[i].FullEndTime = calendar.Events[i].FullStartTime.Add(1 * time.Hour)
 			}
 		}
 	}
@@ -128,6 +130,11 @@ func readStorageDir() (dirModTime time.Time, fileModTime time.Time, recentFile s
 func main() {
 	flag.Parse()
 
+	if len(*jsonFile) > 0 && len(*storage) > 0 {
+		slog.Error("Please provide either -json or -storage")
+		os.Exit(1)
+	}
+
 	if *outDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -144,14 +151,6 @@ func main() {
 			os.Exit(1)
 		}
 		everything = try
-	} else if len(*icalFile) > 0 {
-		calendar, err := readICalFile(*icalFile)
-		if err != nil {
-			os.Exit(1)
-		}
-		for _, event := range calendar.Events {
-			slog.Info("event", "summary", event.Summary, "start", event.FullStartTime, "end", event.FullEndTime)
-		}
 	} else if len(*storage) > 0 && len(*pattern) > 0 {
 		// Automatically read *storage, only looking for files matching *pattern, returning the *storage modification
 		// time, the most recent filename, and errors should they occur
@@ -167,6 +166,16 @@ func main() {
 		try.DirModTime = dirModTime
 		try.FileModTime = fileModTime
 		everything = try
+	}
+
+	if len(*icalFile) > 0 {
+		calendar, err := readICalFile(*icalFile)
+		if err != nil {
+			os.Exit(1)
+		}
+		if err := EnrichScheduleWithThiemeloods(&everything, calendar); err != nil {
+			slog.Error("could not enrich schedule with Thiemeloods", "err", err)
+		}
 	}
 
 	output, err := RenderSchedule(everything)

@@ -9,6 +9,11 @@ const (
 	ROLLOVER_HOUR_FROM_START_OF_DAY = 7 // h/t @yorickvP
 )
 
+var (
+	VierdaagseStartTime = time.Date(2024, 7, 13, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
+	VierdaagseEndTime   = time.Date(2024, 7, 20, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
+)
+
 // type DQI stands for DataQualityIssue
 type DQI int
 
