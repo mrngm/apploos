@@ -23,6 +23,8 @@ var (
 	source          = flag.String("source", "", fmt.Sprintf("Fetch this source, prefixed with protocol://. Supported: %+q", SupportedProtocols))
 	saveDir         = flag.String("storage", "", "Store results in this directory. If not supplied, a temporary directory will be created. If the supplied directory doesn't exist, it's created given enough permissions. Existing files in the supplied directory are never overwritten.")
 	appname         = flag.String("appname", "", "Set the application name (used in e.g. user-agent and request-id)")
+	cleanupTmp      = flag.Bool("cleanTmp", false, "Cleanup temporary files after either a successful or unsuccessful write")
+	cleanupTmpDir   = flag.Bool("cleanTmpDir", false, "Cleanup temporary directory if -saveDir wasn't supplied")
 )
 
 var (
@@ -55,9 +57,15 @@ func main() {
 			logger.Error("error creating tmpDir", "err", err)
 			os.Exit(1)
 		}
-		// TODO: we'll leave a tmp dir, perhaps add a flag that automatically removes it?
 		logger.Info("created a temporary directory, it won't be removed", "dir", tmpDir)
 		*saveDir = tmpDir
+		if *cleanupTmpDir {
+			defer func() {
+				if err := os.Remove(tmpDir); err != nil {
+					logger.Error("(deferred) removing tmpDir failed", "err", err, "tmpDir", tmpDir)
+				}
+			}()
+		}
 	}
 
 	// Try creating a file in the (possibly just created) directory and write something. If that fails, exit
@@ -112,13 +120,18 @@ func main() {
 			return
 		}
 
-		srcContents, err := io.ReadAll(srcReader)
+		checksumWriter := NewChecksumWriter()
+
+		srcContents, err := io.ReadAll(io.TeeReader(srcReader, checksumWriter))
 		if err != nil {
 			logger.Error("io.ReadAll on FetchSource failed", "err", err)
 			return
 		}
 		logger.Debug("FetchSource contents", "length", len(srcContents))
-		written, err := SaveToDisk(ctx, "testname.blob", srcContents)
+		checksum := fmt.Sprintf("%x", checksumWriter.Sum256())
+		logger.Info("sha256(source)", "sum", checksum)
+
+		written, err := SaveToDisk(ctx, checksum+".blob", srcContents)
 		if err != nil {
 			logger.Error("failed saving to disk", "err", err)
 		}

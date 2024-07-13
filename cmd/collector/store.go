@@ -15,6 +15,8 @@ import (
 // The return semantics are equivalent to io.Writer. It returns the number of bytes written (0 <= n <= len(data)) to the
 // temporary file, and nil error if it succeeded. It may return 0 <= n <= len(data) and an error, indicating only part
 // (or none) of the data was written, and an error message saying what failed exactly.
+//
+// If *cleanupTmp is given, it will remove temporary files regardless of the success of this function.
 func SaveToDisk(ctx context.Context, name string, data []byte) (int, error) {
 	fp := filepath.Join(*saveDir, name)
 	slog.Debug("SaveToDisk", "fn", name, "dataLen", len(data), "dir", *saveDir, "fullPath", fp)
@@ -42,6 +44,14 @@ func SaveToDisk(ctx context.Context, name string, data []byte) (int, error) {
 		if shouldCloseTmpFile {
 			if err := fnTmp.Close(); err != nil {
 				slog.Error("(deferred) SaveToDisk(fnTmp.Close) failed", "err", err, "dir", *saveDir, "fnTmp", fnTmp.Name())
+			}
+		}
+	}()
+	tmpFileInPlace := true
+	defer func() {
+		if *cleanupTmp && tmpFileInPlace {
+			if err := os.Remove(fnTmp.Name()); err != nil {
+				slog.Error("(deferred) cleanup of fnTmp failed", "err", err, "dir", *saveDir, "fnTmp", fnTmp.Name())
 			}
 		}
 	}()
@@ -77,6 +87,9 @@ func SaveToDisk(ctx context.Context, name string, data []byte) (int, error) {
 	if err == nil {
 		closeErr := tryDest.Close()
 		slog.Error("SaveToDisk failed, destination file already exists, leaving tmpfile", "fn", fp, "closeErr", closeErr, "dir", *saveDir, "tmpFn", fnTmp.Name(), "bytes_written", n)
+		if *cleanupTmp {
+			return n, fmt.Errorf("destination file %q already exists, preventing write, removing tmpFile %q in *saveDir %q, closeErr: %v", fp, fnTmp.Name(), *saveDir, closeErr)
+		}
 		return n, fmt.Errorf("destination file %q already exists, preventing write, leaving tmpFile %q in *saveDir %q, closeErr: %v", fp, fnTmp.Name(), *saveDir, closeErr)
 	}
 	// Proposed destination doesn't exist after we just synced the containing directory. Rename is likely to succeed.
@@ -85,6 +98,7 @@ func SaveToDisk(ctx context.Context, name string, data []byte) (int, error) {
 		slog.Error("SaveToDisk(rename) failed", "err", err, "bytes_written", n, "dir", *saveDir, "oldpath", fnTmp.Name(), "newpath", fp)
 		return n, fmt.Errorf("could not rename %q to %q: %v", fnTmp.Name(), fp)
 	}
+	tmpFileInPlace = false
 
 	// Sync metadata
 	if err := dirFn.Sync(); err != nil {
