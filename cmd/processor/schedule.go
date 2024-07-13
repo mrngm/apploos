@@ -186,18 +186,14 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	}
 	for n, day := range days {
 		roze := onRozeWoensdagFromTime(day.Date.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour))
-		dayClass := "bg-red"
-		locationClass := "bg-blue"
-		subLocationClass := "bg-white"
 		dayPrefix := ""
+		daySectionClass := ""
 		if roze {
-			dayClass = "bg-roze"
 			dayPrefix = "Roze "
-			locationClass = "bg-main-roze"
-			subLocationClass = "bg-sub-roze"
+			daySectionClass = "roze"
 		}
-		_, err = fmt.Fprintf(buf, `<section class="" id="day-%d"><h1 class="%s sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
-			n+1, dayClass, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
+		_, err = fmt.Fprintf(buf, `<section class="%s day" id="day-%d"><h1 class="sticky-0">Dag %d, %s<time datetime="%s">%s</time></h1>`+"\n",
+			daySectionClass, n+1, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
 		if err != nil {
 			return nil, err
 		}
@@ -231,7 +227,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, theLoc.Title)
 					if err != nil {
 						return nil, err
 					}
@@ -260,13 +256,13 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1 %s">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, locationClass, theLoc.Title)
+						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, theLoc.Title)
 						if err != nil {
 							return nil, err
 						}
 						haveRenderedParent = true
 					}
-					_, err = fmt.Fprintf(buf, `    <h3 class="sticky-2 %s" id="day-%d-lokatie-%s-%s">%s</h3>`+"\n", subLocationClass, n+1, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
+					_, err = fmt.Fprintf(buf, `    <h3 class="sticky-2" id="day-%d-lokatie-%s-%s">%s</h3>`+"\n", n+1, locs[theLoc.Id].Slug, childLoc.Slug, childLoc.Title)
 					if err != nil {
 						return nil, err
 					}
@@ -331,17 +327,6 @@ func cleanDescription(in string) string {
 }
 
 func renderEvent(program *VierdaagseProgram, isEven bool) string {
-	evenClass := "bg-even"
-	if onRozeWoensdag(program) {
-		evenClass = "bg-even-roze"
-	}
-	if !isEven {
-		evenClass = "bg-odd"
-		if onRozeWoensdag(program) {
-			evenClass = "bg-odd-roze"
-		}
-	}
-
 	programSummary := program.DescriptionShort
 	programDetails := cleanDescription(program.Description)
 
@@ -386,15 +371,15 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	}
 	if len(programDetails) == 0 || program.Title == programDetails {
 		program.DataQualityIssues |= DQIOnlySummary
-		return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
-			evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
+		return fmt.Sprintf(`    <div class="event"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
+			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
 			program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, ticketAddition, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event %s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
+	return fmt.Sprintf(`    <div class="event"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
 		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
 		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
-		evenClass, formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
+		formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.StartTime,
 		program.FullEndTime.Format(time.RFC3339), program.EndTime, program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,
 		programDetails)
