@@ -362,6 +362,75 @@ func EnrichScheduleWithDollars(schedule *VierdaagseOverview) error {
 	return nil
 }
 
+// EnrichScheduleWithVereeniging expands the schedule with the events from Stadsschouwburg De Vereeniging
+func EnrichScheduleWithVereeniging(schedule *VierdaagseOverview) error {
+	// Add a location. We can do negative IDs that typically don't conflict with those from the Vierdaagse program
+	for _, loc := range schedule.Locations {
+		if loc.IdWithTitle.Id == int(LocationDeVereenigingId) {
+			return fmt.Errorf("cannot enrich schedule due to conflichting Location ID: %d, %v", loc.IdWithTitle.Id, loc)
+		}
+	}
+	theLoc := VierdaagseLocation{
+		IdWithTitle: IdWithTitle{
+			Id:    int(LocationDeVereenigingId),
+			Title: "De Vereeniging",
+		},
+		// TODO?
+	}
+
+	schedule.Locations = append(schedule.Locations, theLoc)
+	programs := []VierdaagseProgram{
+		// Dag 1
+
+		// Dag 2
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(2, 10, 0), createEventTime(2, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(2, 14, 0), createEventTime(2, 20, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Bertil", createEventTime(2, 13, 0), createEventTime(2, 18, 0), theLoc, ""),
+
+		// Dag 3
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(3, 10, 0), createEventTime(3, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(3, 14, 0), createEventTime(3, 20, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Bertil", createEventTime(3, 13, 0), createEventTime(3, 18, 0), theLoc, ""),
+
+		// Dag 4
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(4, 10, 0), createEventTime(4, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(4, 14, 0), createEventTime(4, 20, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Bertil", createEventTime(4, 13, 0), createEventTime(4, 18, 0), theLoc, ""),
+
+		// Dag 5
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(5, 10, 0), createEventTime(5, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(5, 14, 0), createEventTime(5, 20, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Bertil", createEventTime(5, 13, 0), createEventTime(5, 18, 0), theLoc, ""),
+
+		// Dag 6
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(6, 9, 0), createEventTime(6, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(6, 14, 0), createEventTime(6, 21, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Danny", createEventTime(6, 14, 0), createEventTime(6, 19, 0), theLoc, ""),
+
+		// Dag 7
+		createProgram(schedule, "Terras geopend", createEventTime(7, 8, 0), createEventTime(7, 23, 0), theLoc, ""),
+		createProgram(schedule, "Restaurant en terras geopend", createEventTime(7, 9, 0), createEventTime(7, 23, 0), theLoc, ""),
+		createProgram(schedule, "Speciaalbierplein", createEventTime(7, 14, 0), createEventTime(7, 21, 0), theLoc, ""),
+		createProgram(schedule, "Optreden van DJ Danny", createEventTime(7, 16, 0), createEventTime(7, 23, 0), theLoc, ""),
+	}
+
+	currentProgramIds := make(map[int]struct{})
+	for _, currentProgram := range schedule.Programs {
+		if _, ok := currentProgramIds[currentProgram.IdWithTitle.Id]; !ok {
+			currentProgramIds[currentProgram.IdWithTitle.Id] = struct{}{}
+		}
+	}
+	for _, program := range programs {
+		if _, ok := currentProgramIds[program.IdWithTitle.Id]; ok {
+			slog.Error("cannot add Vereeniging program due to conflicting ID", "id", program.IdWithTitle.Id, "program", program)
+			continue
+		}
+		slog.Info("adding program from Vereeniging", "program", program)
+		schedule.Programs = append(schedule.Programs, program)
+	}
+	return nil
+}
+
 func createProgram(schedule *VierdaagseOverview, title string, startTime time.Time, endTime time.Time, location VierdaagseLocation, description string) VierdaagseProgram {
 	theDay, err := extractDayWithIdFromEvent(schedule, startTime, endTime)
 	if err != nil {

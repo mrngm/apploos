@@ -190,6 +190,10 @@ func main() {
 		slog.Error("could not enrich schedule with Dollars", "err", err)
 	}
 
+	if err := EnrichScheduleWithVereeniging(&everything); err != nil {
+		slog.Error("could not enrich schedule with Vereeniging", "err", err)
+	}
+
 	output, err := RenderSchedule(everything)
 	if err != nil {
 		slog.Error("error rendering schedule", "err", err)
