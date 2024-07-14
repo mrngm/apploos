@@ -220,6 +220,77 @@ func EnrichScheduleWithOpstand(schedule *VierdaagseOverview) error {
 	return nil
 }
 
+// EnrichScheduleWithOnderbroek expands the schedule with the events from De Onderbroek
+func EnrichScheduleWithOnderbroek(schedule *VierdaagseOverview) error {
+	// Add a location. We can do negative IDs that typically don't conflict with those from the Vierdaagse program
+	for _, loc := range schedule.Locations {
+		if loc.IdWithTitle.Id == int(LocationOnderbroekId) {
+			return fmt.Errorf("cannot enrich schedule due to conflichting Location ID: %d, %v", loc.IdWithTitle.Id, loc)
+		}
+	}
+	theLoc := VierdaagseLocation{
+		IdWithTitle: IdWithTitle{
+			Id:    int(LocationOnderbroekId),
+			Title: "De Onderbroek",
+		},
+		// TODO?
+	}
+
+	onderbroekEventSuffix := `Entree: donatie / donation (cash only), er kan geen cash gepind worden bij de kassa. Er zijn pinautomaten in de omgeving.`
+
+	schedule.Locations = append(schedule.Locations, theLoc)
+	programs := []VierdaagseProgram{
+		// Dag 1
+		// 0
+		createProgram(schedule, "Ravetrain", createEventTime(1, 23, 0), createEventTime(2, 5, 0), theLoc, onderbroekEventSuffix),
+
+		// Dag 2
+		// 1
+		createProgram(schedule, "Dj Soulseek & Team MUTE", createEventTime(2, 23, 0), createEventTime(3, 5, 0), theLoc, "90’s eurodance ai madness. "+onderbroekEventSuffix),
+
+		// Dag 3
+		// 2
+		createProgram(schedule, "Chaos in Nijmegen", createEventTime(3, 20, 0), createEventTime(4, 0, 30), theLoc, "Pressure Pact, Stresssyteem, Bot Mes, Karel Anker en de beste stuurlui. Tickets: alleen deurverkoop. Entree: 5,- ~ 10,-. Vanaf 20u geopend. Tot middenacht zijn er bands."),
+		// 3
+		createProgram(schedule, "CIN AFTERPARTY", createEventTime(3, 0, 30), createEventTime(4, 6, 0), theLoc, "AcidTekno by: Bas Punkt ~ Johnny Crash ~ Dr. Graftak ~ Frixion Fanatic ~ Kayayay Madkat. "+onderbroekEventSuffix),
+
+		// Dag 4
+		// 4
+		createProgram(schedule, "Brown Note Booking - Hippie Death Cult (US)", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, "Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Hippie Death Cult's journey through shameless and triumphant artistic expression has led them to become a vibrant force in the realms of psychedelia and riff-heavy rock n’ roll. This journey has not been without its challenges, but the band has always managed to emerge stronger and more determined than ever. Throughout their formative years, the band underwent what proved to be a very significant evolution, transitioning from a 4-piece to a more cohesive and harmonious power trio. This lineup currently consists of guitarist and founder Eddie Brnabic, vocalist and bassist Laura Phillips, and drummer Harry Silvers. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
+		// 5
+		createProgram(schedule, "Brown Note Booking - Diggeth (NL)", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, `Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Diggeth, goede bekenden en graag geziene gasten in Nijmegen, timmeren enorm aan de weg. Tegenwoordig ook regelmatig op tour over de plas. Take 50 years of Hard Rock, Metal, Southern Rock and a bit of Progressive Rock; Diggeth will digest it and will spew out their mix of all these genres in songs with hooks, heaviness and groove! This kick ass 3-piece band does give a complete new meaning to “Metal-‘n-Roll” with their breakthrough album Gringos Galacticos. Their live shows are legendary; the mix of genres is never forced, it flows, it pulses, it grinds and most important; it grooves! It leaves you with an impressive "beep" in your ears and makes you wonder: "How can a three piece sound so big?" (grotebroek.nl). Entree gift vanaf €5,- cash only.`),
+		// 6
+		createProgram(schedule, "Brown Note Booking - DJ Coconaut & Miss MaryLane", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, "PhosPhor Visual zal het vuurwerk completeren en DJ duo Coconaut & Miss MaryLane zullen het feestelijke gehalte nog wat opkrikken. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
+
+		// Dag 5
+		// 7
+		createProgram(schedule, "Bloody Queers: DANKE≠CISTEM", createEventTime(5, 23, 0), createEventTime(6, 5, 0), theLoc, onderbroekEventSuffix),
+
+		// Dag 6
+		// 8
+		createProgram(schedule, "IMMERGE Bass Music Party", createEventTime(6, 23, 0), createEventTime(7, 5, 0), theLoc, "Tijdens de gezelligste week van het jaar in Nijmegen, De Vierdaagse Feesten, staan wij met Immerge in De Onderbroek. De line-up is nog even geheim, maar zoals je van ons verwacht presenteren wij een avond met een breed scala aan bass music. "+onderbroekEventSuffix),
+	}
+	currentProgramIds := make(map[int]struct{})
+	for _, currentProgram := range schedule.Programs {
+		if _, ok := currentProgramIds[currentProgram.IdWithTitle.Id]; !ok {
+			currentProgramIds[currentProgram.IdWithTitle.Id] = struct{}{}
+		}
+	}
+	for idx, program := range programs {
+		if _, ok := currentProgramIds[program.IdWithTitle.Id]; ok {
+			slog.Error("cannot add Onderbroek program due to conflicting ID", "id", program.IdWithTitle.Id, "program", program)
+			continue
+		}
+		switch idx {
+		case 2, 4, 5:
+			program.TicketsPrice = 5.0
+		}
+		slog.Info("adding program from Onderbroek", "program", program)
+		schedule.Programs = append(schedule.Programs, program)
+	}
+	return nil
+}
+
 func createProgram(schedule *VierdaagseOverview, title string, startTime time.Time, endTime time.Time, location VierdaagseLocation, description string) VierdaagseProgram {
 	theDay, err := extractDayWithIdFromEvent(schedule, startTime, endTime)
 	if err != nil {

@@ -182,6 +182,10 @@ func main() {
 		slog.Error("could not enrich schedule with Opstand", "err", err)
 	}
 
+	if err := EnrichScheduleWithOnderbroek(&everything); err != nil {
+		slog.Error("could not enrich schedule with Onderbroek", "err", err)
+	}
+
 	output, err := RenderSchedule(everything)
 	if err != nil {
 		slog.Error("error rendering schedule", "err", err)
