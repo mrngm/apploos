@@ -178,6 +178,10 @@ func main() {
 		}
 	}
 
+	if err := EnrichScheduleWithOpstand(&everything); err != nil {
+		slog.Error("could not enrich schedule with Opstand", "err", err)
+	}
+
 	output, err := RenderSchedule(everything)
 	if err != nil {
 		slog.Error("error rendering schedule", "err", err)
