@@ -390,16 +390,22 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 			ticketAddition = ticketAddition + ` (uitverkocht)`
 		}
 	}
+	specialtyClass := ""
+	if strings.Contains(strings.ToLower(program.Title), "vuurwerkspektakel") {
+		specialtyClass = " fire-text"
+	}
 	if len(programDetails) == 0 || program.Title == programDetails {
 		program.DataQualityIssues |= DQIOnlySummary
-		return fmt.Sprintf(`    <div class="event"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
+		return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
+			specialtyClass,
 			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"),
 			program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), program.Title, ticketAddition, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
+	return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
 		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
 		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
+		specialtyClass,
 		formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"),
 		program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,

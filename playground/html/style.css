@@ -219,5 +219,9 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
     filter: saturate(50%);
 }
 
+.fire-text {
+  text-shadow: 0ex -0.1ex 0.2ex #fff, 0ex -0.1ex 0.5ex #FF3, 0ex -0.5ex 1ex #F90, 0ex -1ex 2ex #C33;
+}
+
 /* vim: et:ts=2:sw=2:cc=120:
 */
