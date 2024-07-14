@@ -17,6 +17,7 @@ const (
 	LocationDollarsId
 	LocationOnderbroekId
 	LocationOpstandId
+	LocationDeVereenigingId
 )
 
 var (
@@ -286,6 +287,76 @@ func EnrichScheduleWithOnderbroek(schedule *VierdaagseOverview) error {
 			program.TicketsPrice = 5.0
 		}
 		slog.Info("adding program from Onderbroek", "program", program)
+		schedule.Programs = append(schedule.Programs, program)
+	}
+	return nil
+}
+
+// EnrichScheduleWithDollars expands the schedule with the events from Café Dollars
+func EnrichScheduleWithDollars(schedule *VierdaagseOverview) error {
+	// Add a location. We can do negative IDs that typically don't conflict with those from the Vierdaagse program
+	for _, loc := range schedule.Locations {
+		if loc.IdWithTitle.Id == int(LocationDollarsId) {
+			return fmt.Errorf("cannot enrich schedule due to conflichting Location ID: %d, %v", loc.IdWithTitle.Id, loc)
+		}
+	}
+	theLoc := VierdaagseLocation{
+		IdWithTitle: IdWithTitle{
+			Id:    int(LocationDollarsId),
+			Title: "Dollars Muziekcafé",
+		},
+		// TODO?
+	}
+
+	schedule.Locations = append(schedule.Locations, theLoc)
+	programs := []VierdaagseProgram{
+		// Dag 1
+		createProgram(schedule, "The GunZ of Boston", createEventTime(1, 18, 0), createEventTime(1, 19, 0), theLoc, "HE GUNZ OF BOSTON are a CLASSIC ROCK group. Their MUSIC harks back to the days of that great, bygone era of CLASSIC ROCK , the SEVENTIES and the EIGHTIES. When MUSIC would combine POWER and EMOTION, PASSION and GRACE. When a song would tell a story, when a SINGER was a SINGER and ROCK GUITARS ruled the world. (thegunzofboston.bandcamp.com)"),
+		createProgram(schedule, "Funktie Elders", createEventTime(1, 21, 30), createEventTime(1, 22, 30), theLoc, "Funktie Elders is een achtkoppige coverband uit Nijmegen, opgericht in 2021. Met een onweerstaanbare mix van energie, talent en aanstekelijke muzikaliteit, toveren ze elk optreden om tot een gegarandeerd feest. (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "Dollars Mash-up", createEventTime(2, 0, 30), createEventTime(2, 1, 30), theLoc, ""),
+
+		// Dag 2
+		createProgram(schedule, "Aangeschoten", createEventTime(2, 18, 0), createEventTime(2, 19, 0), theLoc, ""),
+		createProgram(schedule, "KeToBra", createEventTime(2, 20, 30), createEventTime(2, 21, 30), theLoc, `KeToBra is een Nederlandstalige popgroep uit Nijmegen, opgericht in 2017 door Ke, To en Bra. Beginnend als panfluit-groep sloeg Ketobra na hun single "WiFi In De Trein" een nieuwe richting in en lieten de panfluitmuziek achter zich. De formule van de band bestaat voornamelijk uit het combineren van humoristische teksten en diverse genres. (popronde.nl)`),
+		createProgram(schedule, "The Evergreens", createEventTime(3, 0, 30), createEventTime(3, 2, 30), theLoc, "The Evergreens met een breed assortiment met rock en pop! Op de blokken tussen de menigte maakt dit een speciaal en uniek optreden. De fatastische stem van Robine Roordink wordt begeleid door gitaarvirtuoos Jeroen Wallar-Diemont, Kimon op de bas en Twan voor het ritme!! De zaterdag huisband van Dollars Nijmegen! (vierdaagsefeesten.nl)"),
+
+		// Dag 3
+		createProgram(schedule, "Tachycardia", createEventTime(3, 19, 0), createEventTime(3, 20, 0), theLoc, "Dit arsenaal aan muzikaal talent, dat al sinds 2004 onder de naam Tachycardia faam vergaart zowel binnen als buiten de [Medische] faculteit, bestaat uit zeven muzikanten en een manager. De band beschikt over een drummer, pianist, saxofonist, (bas) gitaristen en zangers. Dit geeft ze de mogelijkheid een zeer breed repetoire ten gehore te brengen aan zowel trouwe fans als nieuwe fans van de altijd groeiende fanbase. Aangezien ‘een breed repertoire’ niet specificeert of dat loopt van Jan Smit tot Lee Towers of van The Red Hot Chili Peppers tot Kyteman zal dit bericht daar iets duidelijker over zijn; het tweede. Tot gecoverde artiesten behoren onder andere RHCP, Arctic Monkeys, Bruno Mars, Calvin Harris, Guns ’n Roses, Robbie Williams, Imagine Dragons en nog veel meer in dit altijd veranderende repertoire. Belangrijker is wellicht om te vermelden dat er genoeg muzikaliteit aanwezig is om een eigen creatieve draai te geven aan iedere cover. Maar wat is een foutloze muzikale uitvoering zonder bijpassend charisma om de muziek tot leven te brengen? Daarom staat Tachycardia met een fysiologische tachycardie op het podium. Tachycardia treedt met veel plezier op tijdens activiteiten van de MFVN, zoals de ouderdag, de muziekmaand van de Aesculaaf en feestelijke onderwijsafsluitingen. Ook wordt buiten de faculteit hard aan de weg getimmerd en kan je Tachycardia zien op menig gala en feest. (mfvn.nl)"),
+		createProgram(schedule, "Bootleg Betty", createEventTime(3, 22, 0), createEventTime(3, 23, 0), theLoc, "Bootleg Betty deinst er niet voor terug om je alle hoeken van de rootsmuziek te laten horen. Vol energie vuurt het Nijmeegse vijftal haar meerstemmige mix van rockabilly, pop, country en rock-‘n-roll op je af. De eigentijdse benadering van deze traditionele invloeden resulteert in een herkenbaar geluid dat alles behalve gedateerd is. (bootlegbetty.nl)"),
+		createProgram(schedule, "The Newly Wets", createEventTime(4, 0, 30), createEventTime(4, 1, 30), theLoc, "Van country tot pop naar blues en rock, het komt allemaal voorbij. The Newly Wets geven muziek met een knipoog een nieuwe betekenis. (vierdaagsefeesten.nl)"),
+
+		// Dag 4
+		createProgram(schedule, "Band Zonder Faam", createEventTime(4, 18, 0), createEventTime(4, 19, 0), theLoc, ""),
+		createProgram(schedule, "FOK!", createEventTime(4, 21, 30), createEventTime(4, 22, 30), theLoc, ""),
+		createProgram(schedule, "The Kelly Cats", createEventTime(5, 0, 30), createEventTime(5, 1, 30), theLoc, "Not your average coverband. Hits & classics with a rock ‘n roll twist. (instagram.com/thekellycats.band/)"),
+
+		// Dag 5
+		createProgram(schedule, "Manatee", createEventTime(5, 18, 0), createEventTime(5, 19, 0), theLoc, "Manatee is een Nijmeegse coverband met hits van alle tijden. Je kan meezingen met een een breed repertoire aan guilty pleasures en gouwe ouwe; van Harry Styles tot ABBA en van Stevie Wonder tot Robbie Williams. (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "The Breaks", createEventTime(5, 21, 0), createEventTime(5, 22, 0), theLoc, "Pop/Rock/Coverband. Bruiloften, feesten & partijen! Van Tina Turner tot Bon Jovi tot Dua Lipa en nog véél meer! (instagram.com/the_breaks_nl/)"),
+		createProgram(schedule, "The Tributes", createEventTime(6, 0, 30), createEventTime(6, 1, 30), theLoc, "Deze band brengt een avond vol tributes aan de legendes van pop- en rockmuziek. Denk bij THE TRIBUTES niet aan achtergrondmuziek, maar een show met Jeroen Waller-Diemont op gitaar, ondersteund door Twan arts op cajon en krachtige vocalen van charismatische zangeres Karlijn. De band, bestaande uit 3 jonge muzikanten, is ontstaan en gegroeid in Dollars: dé live kroeg van Nijmegen. Op de setlijst staan covers van o.a. Tina Turner, ACDC, Bon Jovi en Queen. Het publiek zal met de muzikale TRIBUTES van het begin tot het eind meebrullen. Aangestoken door de overdosis aan enthousiasme van de band. (vierdaagsefeesten.nl)"),
+
+		// Dag 6
+		createProgram(schedule, "The Oracles", createEventTime(6, 19, 0), createEventTime(6, 20, 0), theLoc, ""),
+		createProgram(schedule, "De Gang Van Zaken", createEventTime(6, 21, 30), createEventTime(6, 22, 30), theLoc, "Wij zijn De Gang Van Zaken, een in Nijmegen gevestigde band met Utrechtse roots. We spelen een eigen combinatie van indie, pop, funk en een vleugje rock. (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "Royal Blend", createEventTime(7, 0, 30), createEventTime(7, 1, 30), theLoc, ""),
+
+		// Dag 7
+		createProgram(schedule, "Blueshift", createEventTime(7, 21, 0), createEventTime(7, 22, 0), theLoc, "Verwacht bij Blueshift een optreden vol meeslepende vocalen, scheurende gitaarsolo’s, rommelende bas en opzwepende drums! Deze vierkoppige Nijmeegse band speelt al bijna 10 jaar samen. De eerste jaren speelden ze, toen nog allemaal studenten aan de Radboud Universiteit, vooral covers van bekende nummers uit de blues, bluesrock en classic rock. Tegenwoordig gebruiken ze die invloeden voor hun eigen materiaal en hebben ze sinds 2020 verschillende nummers uitgebracht. Na deelname aan de Roos van Nijmegen in Doornroosje duikt de band regelmatig weer de studio in en zijn ze in de tussentijd op allerlei plekken live te vinden! (blueshiftband.nl)"),
+		createProgram(schedule, "Low Hangin' Fruit", createEventTime(8, 1, 0), createEventTime(8, 2, 0), theLoc, "Low Hangin’ Fruit is not “your average coverband”. Vier ervaren enthousiaste muzikanten met een passie voor jouw favoriete guilty pleasures. Een unieke setlist waarin alle tijden worden aangetikt van 80’s tot 00’s en dit alles met een knipoog. Altijd een rockversie willen horen van Eternal Flame of Crazy in Love? Zin in de tropische vibes van Dreadlock Holiday? Of liever rocken op In The End? Dan is dit jouw band! Meezingen, meedansen en een lekker potje headbangen zijn geen opties, het is verplicht! (lowhanginfruitband.nl)"),
+	}
+
+	currentProgramIds := make(map[int]struct{})
+	for _, currentProgram := range schedule.Programs {
+		if _, ok := currentProgramIds[currentProgram.IdWithTitle.Id]; !ok {
+			currentProgramIds[currentProgram.IdWithTitle.Id] = struct{}{}
+		}
+	}
+	for _, program := range programs {
+		if _, ok := currentProgramIds[program.IdWithTitle.Id]; ok {
+			slog.Error("cannot add Dollars program due to conflicting ID", "id", program.IdWithTitle.Id, "program", program)
+			continue
+		}
+		slog.Info("adding program from Dollars", "program", program)
 		schedule.Programs = append(schedule.Programs, program)
 	}
 	return nil
