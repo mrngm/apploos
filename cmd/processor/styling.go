@@ -45,6 +45,11 @@ h3 {
     color: black !important;
     text-decoration: none;
 }
+.day > section > h2 a {
+    display: block;
+    color: black !important;
+    text-decoration: none;
+}
 .bg-yellow {
   background-color: #ffd700 !important;
 }
