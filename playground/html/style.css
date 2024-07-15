@@ -212,6 +212,12 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
   z-index: 120;
   padding: 0.5ex;
 }
+.event.now {
+    background-color: #f99999 !important;
+}
+.event.past {
+    filter: saturate(50%);
+}
 
 /* vim: et:ts=2:sw=2:cc=120:
 */
