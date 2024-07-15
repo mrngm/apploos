@@ -184,6 +184,7 @@ var htmlSuffix = `
           x.classList.add("now")
         } else if (end <= now) {
           x.classList.add("past")
+          x.classList.remove("now")
         }
       })
       now = new Date();
