@@ -178,14 +178,14 @@ var htmlSuffix = `
     <script type="text/javascript">
     function highlightNow() {
       let now = new Date()
-	    document.querySelectorAll(".event").forEach(x => {
- 	     const [start, end] = Array.from(x.querySelectorAll("time")).map(y => new Date(y.getAttribute("datetime")))
- 	     if (start <= now && now <= end) {
-         x.classList.add("now")
-       } else if (end <= now) {
-         x.classList.add("past")
-       }
-	    })
+      document.querySelectorAll(".event").forEach(x => {
+        const [start, end] = Array.from(x.querySelectorAll("time")).map(y => new Date(y.getAttribute("datetime")))
+        if (start <= now && now <= end) {
+          x.classList.add("now")
+        } else if (end <= now) {
+          x.classList.add("past")
+        }
+      })
       now = new Date();
       const nextMinute = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + 1, 0, 0);
       setTimeout(highlightNow, nextMinute - now);
