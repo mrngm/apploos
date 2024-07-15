@@ -1,3 +1,6 @@
+package main
+
+var stylesheetCSS = []byte(`
 * {
   /* reset ALL the things */
   margin: 0;
@@ -225,3 +228,4 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 
 /* vim: et:ts=2:sw=2:cc=120:
 */
+`)
