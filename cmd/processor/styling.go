@@ -1,5 +1,10 @@
 package main
 
+import (
+	"crypto/sha256"
+	"fmt"
+)
+
 var stylesheetCSS = []byte(`
 * {
   /* reset ALL the things */
@@ -231,7 +236,5 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 .fire-text {
   text-shadow: 0ex -0.1ex 0.2ex #fff, 0ex -0.1ex 0.5ex #FF3, 0ex -0.5ex 1ex #F90, 0ex -1ex 2ex #C33;
 }
-
-/* vim: et:ts=2:sw=2:cc=120:
-*/
 `)
+var stylesheetCheckumShort = fmt.Sprintf("%x", sha256.Sum256(stylesheetCSS))[0:9]

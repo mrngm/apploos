@@ -149,7 +149,7 @@ var htmlPrefix = `<!DOCTYPE html>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Vierdaagsefeesten 2024</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="style.css?` + stylesheetCheckumShort + `" />
     <script type="text/javascript">
         function scrollToAnchorOrDay() {
             if(location.hash != "") {
