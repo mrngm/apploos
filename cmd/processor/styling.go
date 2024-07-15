@@ -225,6 +225,7 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 }
 .event.past {
     filter: saturate(50%);
+    background-color: #c8d6fe !important;
 }
 
 .fire-text {
