@@ -134,7 +134,7 @@ h3 {
 
 section > section {
   margin-bottom: 2ex;
-  scroll-margin-top: 36px;
+  scroll-margin-top: 1.5em;
 }
 
 .artist {
