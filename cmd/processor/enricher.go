@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type CustomLocationId int
@@ -19,19 +18,6 @@ const (
 	LocationOpstandId
 	LocationDeVereenigingId
 )
-
-var (
-	// ProgramCustomId is a starting point for custom program IDs. Implementors must decrease this value upon using this
-	// variable.
-	ProgramCustomId CustomProgramId = -73
-
-	CEST = time.FixedZone("CEST", 2*60*60)
-)
-
-func GetCustomProgramId() int {
-	ProgramCustomId--
-	return int(ProgramCustomId)
-}
 
 var (
 	ThiemeloodsFilterFigureRegexp = regexp.MustCompile(`(?is)<figure .+</figure>`)
@@ -131,16 +117,6 @@ func EnrichScheduleWithThiemeloods(schedule *VierdaagseOverview, calendar ICalen
 	}
 
 	return nil
-}
-
-func extractDayWithIdFromEvent(everything *VierdaagseOverview, startTime time.Time, endTime time.Time) (VierdaagseDay, error) {
-	for _, day := range everything.Days {
-		if startTime.After(day.Date.Add(time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour)) &&
-			endTime.Before(day.Date.AddDate(0, 0, 1).Add(time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour)) {
-			return day, nil
-		}
-	}
-	return VierdaagseDay{}, fmt.Errorf("no match found")
 }
 
 // EnrichScheduleWithOpstand expands the schedule with the events from Kollektief Kafé De Opstand
@@ -243,33 +219,33 @@ func EnrichScheduleWithOnderbroek(schedule *VierdaagseOverview) error {
 	programs := []VierdaagseProgram{
 		// Dag 1
 		// 0
-		createProgram(schedule, "Ravetrain", createEventTime(1, 23, 0), createEventTime(2, 5, 0), theLoc, onderbroekEventSuffix),
+		createProgram(schedule, "Ravetrain", createEventTime(1, 23, 0), createEventTime(1, 5, 0), theLoc, onderbroekEventSuffix),
 
 		// Dag 2
 		// 1
-		createProgram(schedule, "Dj Soulseek & Team MUTE", createEventTime(2, 23, 0), createEventTime(3, 5, 0), theLoc, "90’s eurodance ai madness. "+onderbroekEventSuffix),
+		createProgram(schedule, "Dj Soulseek & Team MUTE", createEventTime(2, 23, 0), createEventTime(2, 5, 0), theLoc, "90’s eurodance ai madness. "+onderbroekEventSuffix),
 
 		// Dag 3
 		// 2
-		createProgram(schedule, "Chaos in Nijmegen", createEventTime(3, 20, 0), createEventTime(4, 0, 30), theLoc, "Pressure Pact, Stresssyteem, Bot Mes, Karel Anker en de beste stuurlui. Tickets: alleen deurverkoop. Entree: 5,- ~ 10,-. Vanaf 20u geopend. Tot middenacht zijn er bands."),
+		createProgram(schedule, "Chaos in Nijmegen", createEventTime(3, 20, 0), createEventTime(3, 0, 30), theLoc, "Pressure Pact, Stresssyteem, Bot Mes, Karel Anker en de beste stuurlui. Tickets: alleen deurverkoop. Entree: 5,- ~ 10,-. Vanaf 20u geopend. Tot middenacht zijn er bands."),
 		// 3
-		createProgram(schedule, "CIN AFTERPARTY", createEventTime(3, 0, 30), createEventTime(4, 6, 0), theLoc, "AcidTekno by: Bas Punkt ~ Johnny Crash ~ Dr. Graftak ~ Frixion Fanatic ~ Kayayay Madkat. "+onderbroekEventSuffix),
+		createProgram(schedule, "CIN AFTERPARTY", createEventTime(3, 0, 30), createEventTime(3, 6, 0), theLoc, "AcidTekno by: Bas Punkt ~ Johnny Crash ~ Dr. Graftak ~ Frixion Fanatic ~ Kayayay Madkat. "+onderbroekEventSuffix),
 
 		// Dag 4
 		// 4
-		createProgram(schedule, "Brown Note Booking - Hippie Death Cult (US)", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, "Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Hippie Death Cult's journey through shameless and triumphant artistic expression has led them to become a vibrant force in the realms of psychedelia and riff-heavy rock n’ roll. This journey has not been without its challenges, but the band has always managed to emerge stronger and more determined than ever. Throughout their formative years, the band underwent what proved to be a very significant evolution, transitioning from a 4-piece to a more cohesive and harmonious power trio. This lineup currently consists of guitarist and founder Eddie Brnabic, vocalist and bassist Laura Phillips, and drummer Harry Silvers. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
+		createProgram(schedule, "Brown Note Booking - Hippie Death Cult (US)", createEventTime(4, 21, 30), createEventTime(4, 2, 30), theLoc, "Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Hippie Death Cult's journey through shameless and triumphant artistic expression has led them to become a vibrant force in the realms of psychedelia and riff-heavy rock n’ roll. This journey has not been without its challenges, but the band has always managed to emerge stronger and more determined than ever. Throughout their formative years, the band underwent what proved to be a very significant evolution, transitioning from a 4-piece to a more cohesive and harmonious power trio. This lineup currently consists of guitarist and founder Eddie Brnabic, vocalist and bassist Laura Phillips, and drummer Harry Silvers. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
 		// 5
-		createProgram(schedule, "Brown Note Booking - Diggeth (NL)", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, `Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Diggeth, goede bekenden en graag geziene gasten in Nijmegen, timmeren enorm aan de weg. Tegenwoordig ook regelmatig op tour over de plas. Take 50 years of Hard Rock, Metal, Southern Rock and a bit of Progressive Rock; Diggeth will digest it and will spew out their mix of all these genres in songs with hooks, heaviness and groove! This kick ass 3-piece band does give a complete new meaning to “Metal-‘n-Roll” with their breakthrough album Gringos Galacticos. Their live shows are legendary; the mix of genres is never forced, it flows, it pulses, it grinds and most important; it grooves! It leaves you with an impressive "beep" in your ears and makes you wonder: "How can a three piece sound so big?" (grotebroek.nl). Entree gift vanaf €5,- cash only.`),
+		createProgram(schedule, "Brown Note Booking - Diggeth (NL)", createEventTime(4, 21, 30), createEventTime(4, 2, 30), theLoc, `Explosieve hardrock met een vleugje psych, een snufje blues en een flinke scheut metal, Hippie Death Cult en Diggeth zullen Nijmegen op haar grondvesten doen trillen! Diggeth, goede bekenden en graag geziene gasten in Nijmegen, timmeren enorm aan de weg. Tegenwoordig ook regelmatig op tour over de plas. Take 50 years of Hard Rock, Metal, Southern Rock and a bit of Progressive Rock; Diggeth will digest it and will spew out their mix of all these genres in songs with hooks, heaviness and groove! This kick ass 3-piece band does give a complete new meaning to “Metal-‘n-Roll” with their breakthrough album Gringos Galacticos. Their live shows are legendary; the mix of genres is never forced, it flows, it pulses, it grinds and most important; it grooves! It leaves you with an impressive "beep" in your ears and makes you wonder: "How can a three piece sound so big?" (grotebroek.nl). Entree gift vanaf €5,- cash only.`),
 		// 6
-		createProgram(schedule, "Brown Note Booking - DJ Coconaut & Miss MaryLane", createEventTime(4, 21, 30), createEventTime(5, 2, 30), theLoc, "PhosPhor Visual zal het vuurwerk completeren en DJ duo Coconaut & Miss MaryLane zullen het feestelijke gehalte nog wat opkrikken. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
+		createProgram(schedule, "Brown Note Booking - DJ Coconaut & Miss MaryLane", createEventTime(4, 21, 30), createEventTime(4, 2, 30), theLoc, "PhosPhor Visual zal het vuurwerk completeren en DJ duo Coconaut & Miss MaryLane zullen het feestelijke gehalte nog wat opkrikken. (grotebroek.nl). Entree gift vanaf €5,- cash only."),
 
 		// Dag 5
 		// 7
-		createProgram(schedule, "Bloody Queers: DANKE≠CISTEM", createEventTime(5, 23, 0), createEventTime(6, 5, 0), theLoc, onderbroekEventSuffix),
+		createProgram(schedule, "Bloody Queers: DANKE≠CISTEM", createEventTime(5, 23, 0), createEventTime(5, 5, 0), theLoc, onderbroekEventSuffix),
 
 		// Dag 6
 		// 8
-		createProgram(schedule, "IMMERGE Bass Music Party", createEventTime(6, 23, 0), createEventTime(7, 5, 0), theLoc, "Tijdens de gezelligste week van het jaar in Nijmegen, De Vierdaagse Feesten, staan wij met Immerge in De Onderbroek. De line-up is nog even geheim, maar zoals je van ons verwacht presenteren wij een avond met een breed scala aan bass music. "+onderbroekEventSuffix),
+		createProgram(schedule, "IMMERGE Bass Music Party", createEventTime(6, 23, 0), createEventTime(6, 5, 0), theLoc, "Tijdens de gezelligste week van het jaar in Nijmegen, De Vierdaagse Feesten, staan wij met Immerge in De Onderbroek. De line-up is nog even geheim, maar zoals je van ons verwacht presenteren wij een avond met een breed scala aan bass music. "+onderbroekEventSuffix),
 	}
 	currentProgramIds := make(map[int]struct{})
 	for _, currentProgram := range schedule.Programs {
@@ -313,36 +289,36 @@ func EnrichScheduleWithDollars(schedule *VierdaagseOverview) error {
 		// Dag 1
 		createProgram(schedule, "The GunZ of Boston", createEventTime(1, 18, 0), createEventTime(1, 19, 0), theLoc, "HE GUNZ OF BOSTON are a CLASSIC ROCK group. Their MUSIC harks back to the days of that great, bygone era of CLASSIC ROCK , the SEVENTIES and the EIGHTIES. When MUSIC would combine POWER and EMOTION, PASSION and GRACE. When a song would tell a story, when a SINGER was a SINGER and ROCK GUITARS ruled the world. (thegunzofboston.bandcamp.com)"),
 		createProgram(schedule, "Funktie Elders", createEventTime(1, 21, 30), createEventTime(1, 22, 30), theLoc, "Funktie Elders is een achtkoppige coverband uit Nijmegen, opgericht in 2021. Met een onweerstaanbare mix van energie, talent en aanstekelijke muzikaliteit, toveren ze elk optreden om tot een gegarandeerd feest. (vierdaagsefeesten.nl)"),
-		createProgram(schedule, "Dollars Mash-up", createEventTime(2, 0, 30), createEventTime(2, 1, 30), theLoc, ""),
+		createProgram(schedule, "Dollars Mash-up", createEventTime(1, 0, 30), createEventTime(1, 1, 30), theLoc, ""),
 
 		// Dag 2
 		createProgram(schedule, "Aangeschoten", createEventTime(2, 18, 0), createEventTime(2, 19, 0), theLoc, ""),
 		createProgram(schedule, "KeToBra", createEventTime(2, 20, 30), createEventTime(2, 21, 30), theLoc, `KeToBra is een Nederlandstalige popgroep uit Nijmegen, opgericht in 2017 door Ke, To en Bra. Beginnend als panfluit-groep sloeg Ketobra na hun single "WiFi In De Trein" een nieuwe richting in en lieten de panfluitmuziek achter zich. De formule van de band bestaat voornamelijk uit het combineren van humoristische teksten en diverse genres. (popronde.nl)`),
-		createProgram(schedule, "The Evergreens", createEventTime(3, 0, 30), createEventTime(3, 2, 30), theLoc, "The Evergreens met een breed assortiment met rock en pop! Op de blokken tussen de menigte maakt dit een speciaal en uniek optreden. De fatastische stem van Robine Roordink wordt begeleid door gitaarvirtuoos Jeroen Wallar-Diemont, Kimon op de bas en Twan voor het ritme!! De zaterdag huisband van Dollars Nijmegen! (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "The Evergreens", createEventTime(2, 0, 30), createEventTime(2, 2, 30), theLoc, "The Evergreens met een breed assortiment met rock en pop! Op de blokken tussen de menigte maakt dit een speciaal en uniek optreden. De fatastische stem van Robine Roordink wordt begeleid door gitaarvirtuoos Jeroen Wallar-Diemont, Kimon op de bas en Twan voor het ritme!! De zaterdag huisband van Dollars Nijmegen! (vierdaagsefeesten.nl)"),
 
 		// Dag 3
 		createProgram(schedule, "Tachycardia", createEventTime(3, 19, 0), createEventTime(3, 20, 0), theLoc, "Dit arsenaal aan muzikaal talent, dat al sinds 2004 onder de naam Tachycardia faam vergaart zowel binnen als buiten de [Medische] faculteit, bestaat uit zeven muzikanten en een manager. De band beschikt over een drummer, pianist, saxofonist, (bas) gitaristen en zangers. Dit geeft ze de mogelijkheid een zeer breed repetoire ten gehore te brengen aan zowel trouwe fans als nieuwe fans van de altijd groeiende fanbase. Aangezien ‘een breed repertoire’ niet specificeert of dat loopt van Jan Smit tot Lee Towers of van The Red Hot Chili Peppers tot Kyteman zal dit bericht daar iets duidelijker over zijn; het tweede. Tot gecoverde artiesten behoren onder andere RHCP, Arctic Monkeys, Bruno Mars, Calvin Harris, Guns ’n Roses, Robbie Williams, Imagine Dragons en nog veel meer in dit altijd veranderende repertoire. Belangrijker is wellicht om te vermelden dat er genoeg muzikaliteit aanwezig is om een eigen creatieve draai te geven aan iedere cover. Maar wat is een foutloze muzikale uitvoering zonder bijpassend charisma om de muziek tot leven te brengen? Daarom staat Tachycardia met een fysiologische tachycardie op het podium. Tachycardia treedt met veel plezier op tijdens activiteiten van de MFVN, zoals de ouderdag, de muziekmaand van de Aesculaaf en feestelijke onderwijsafsluitingen. Ook wordt buiten de faculteit hard aan de weg getimmerd en kan je Tachycardia zien op menig gala en feest. (mfvn.nl)"),
 		createProgram(schedule, "Bootleg Betty", createEventTime(3, 22, 0), createEventTime(3, 23, 0), theLoc, "Bootleg Betty deinst er niet voor terug om je alle hoeken van de rootsmuziek te laten horen. Vol energie vuurt het Nijmeegse vijftal haar meerstemmige mix van rockabilly, pop, country en rock-‘n-roll op je af. De eigentijdse benadering van deze traditionele invloeden resulteert in een herkenbaar geluid dat alles behalve gedateerd is. (bootlegbetty.nl)"),
-		createProgram(schedule, "The Newly Wets", createEventTime(4, 0, 30), createEventTime(4, 1, 30), theLoc, "Van country tot pop naar blues en rock, het komt allemaal voorbij. The Newly Wets geven muziek met een knipoog een nieuwe betekenis. (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "The Newly Wets", createEventTime(3, 0, 30), createEventTime(3, 1, 30), theLoc, "Van country tot pop naar blues en rock, het komt allemaal voorbij. The Newly Wets geven muziek met een knipoog een nieuwe betekenis. (vierdaagsefeesten.nl)"),
 
 		// Dag 4
 		createProgram(schedule, "Band Zonder Faam", createEventTime(4, 18, 0), createEventTime(4, 19, 0), theLoc, ""),
 		createProgram(schedule, "FOK!", createEventTime(4, 21, 30), createEventTime(4, 22, 30), theLoc, ""),
-		createProgram(schedule, "The Kelly Cats", createEventTime(5, 0, 30), createEventTime(5, 1, 30), theLoc, "Not your average coverband. Hits & classics with a rock ‘n roll twist. (instagram.com/thekellycats.band/)"),
+		createProgram(schedule, "The Kelly Cats", createEventTime(4, 0, 30), createEventTime(4, 1, 30), theLoc, "Not your average coverband. Hits & classics with a rock ‘n roll twist. (instagram.com/thekellycats.band/)"),
 
 		// Dag 5
 		createProgram(schedule, "Manatee", createEventTime(5, 18, 0), createEventTime(5, 19, 0), theLoc, "Manatee is een Nijmeegse coverband met hits van alle tijden. Je kan meezingen met een een breed repertoire aan guilty pleasures en gouwe ouwe; van Harry Styles tot ABBA en van Stevie Wonder tot Robbie Williams. (vierdaagsefeesten.nl)"),
 		createProgram(schedule, "The Breaks", createEventTime(5, 21, 0), createEventTime(5, 22, 0), theLoc, "Pop/Rock/Coverband. Bruiloften, feesten & partijen! Van Tina Turner tot Bon Jovi tot Dua Lipa en nog véél meer! (instagram.com/the_breaks_nl/)"),
-		createProgram(schedule, "The Tributes", createEventTime(6, 0, 30), createEventTime(6, 1, 30), theLoc, "Deze band brengt een avond vol tributes aan de legendes van pop- en rockmuziek. Denk bij THE TRIBUTES niet aan achtergrondmuziek, maar een show met Jeroen Waller-Diemont op gitaar, ondersteund door Twan arts op cajon en krachtige vocalen van charismatische zangeres Karlijn. De band, bestaande uit 3 jonge muzikanten, is ontstaan en gegroeid in Dollars: dé live kroeg van Nijmegen. Op de setlijst staan covers van o.a. Tina Turner, ACDC, Bon Jovi en Queen. Het publiek zal met de muzikale TRIBUTES van het begin tot het eind meebrullen. Aangestoken door de overdosis aan enthousiasme van de band. (vierdaagsefeesten.nl)"),
+		createProgram(schedule, "The Tributes", createEventTime(5, 0, 30), createEventTime(5, 1, 30), theLoc, "Deze band brengt een avond vol tributes aan de legendes van pop- en rockmuziek. Denk bij THE TRIBUTES niet aan achtergrondmuziek, maar een show met Jeroen Waller-Diemont op gitaar, ondersteund door Twan arts op cajon en krachtige vocalen van charismatische zangeres Karlijn. De band, bestaande uit 3 jonge muzikanten, is ontstaan en gegroeid in Dollars: dé live kroeg van Nijmegen. Op de setlijst staan covers van o.a. Tina Turner, ACDC, Bon Jovi en Queen. Het publiek zal met de muzikale TRIBUTES van het begin tot het eind meebrullen. Aangestoken door de overdosis aan enthousiasme van de band. (vierdaagsefeesten.nl)"),
 
 		// Dag 6
 		createProgram(schedule, "The Oracles", createEventTime(6, 19, 0), createEventTime(6, 20, 0), theLoc, ""),
 		createProgram(schedule, "De Gang Van Zaken", createEventTime(6, 21, 30), createEventTime(6, 22, 30), theLoc, "Wij zijn De Gang Van Zaken, een in Nijmegen gevestigde band met Utrechtse roots. We spelen een eigen combinatie van indie, pop, funk en een vleugje rock. (vierdaagsefeesten.nl)"),
-		createProgram(schedule, "Royal Blend", createEventTime(7, 0, 30), createEventTime(7, 1, 30), theLoc, ""),
+		createProgram(schedule, "Royal Blend", createEventTime(6, 0, 30), createEventTime(6, 1, 30), theLoc, ""),
 
 		// Dag 7
 		createProgram(schedule, "Blueshift", createEventTime(7, 21, 0), createEventTime(7, 22, 0), theLoc, "Verwacht bij Blueshift een optreden vol meeslepende vocalen, scheurende gitaarsolo’s, rommelende bas en opzwepende drums! Deze vierkoppige Nijmeegse band speelt al bijna 10 jaar samen. De eerste jaren speelden ze, toen nog allemaal studenten aan de Radboud Universiteit, vooral covers van bekende nummers uit de blues, bluesrock en classic rock. Tegenwoordig gebruiken ze die invloeden voor hun eigen materiaal en hebben ze sinds 2020 verschillende nummers uitgebracht. Na deelname aan de Roos van Nijmegen in Doornroosje duikt de band regelmatig weer de studio in en zijn ze in de tussentijd op allerlei plekken live te vinden! (blueshiftband.nl)"),
-		createProgram(schedule, "Low Hangin' Fruit", createEventTime(8, 1, 0), createEventTime(8, 2, 0), theLoc, "Low Hangin’ Fruit is not “your average coverband”. Vier ervaren enthousiaste muzikanten met een passie voor jouw favoriete guilty pleasures. Een unieke setlist waarin alle tijden worden aangetikt van 80’s tot 00’s en dit alles met een knipoog. Altijd een rockversie willen horen van Eternal Flame of Crazy in Love? Zin in de tropische vibes van Dreadlock Holiday? Of liever rocken op In The End? Dan is dit jouw band! Meezingen, meedansen en een lekker potje headbangen zijn geen opties, het is verplicht! (lowhanginfruitband.nl)"),
+		createProgram(schedule, "Low Hangin' Fruit", createEventTime(7, 1, 0), createEventTime(7, 2, 0), theLoc, "Low Hangin’ Fruit is not “your average coverband”. Vier ervaren enthousiaste muzikanten met een passie voor jouw favoriete guilty pleasures. Een unieke setlist waarin alle tijden worden aangetikt van 80’s tot 00’s en dit alles met een knipoog. Altijd een rockversie willen horen van Eternal Flame of Crazy in Love? Zin in de tropische vibes van Dreadlock Holiday? Of liever rocken op In The End? Dan is dit jouw band! Meezingen, meedansen en een lekker potje headbangen zijn geen opties, het is verplicht! (lowhanginfruitband.nl)"),
 	}
 
 	currentProgramIds := make(map[int]struct{})
@@ -429,36 +405,6 @@ func EnrichScheduleWithVereeniging(schedule *VierdaagseOverview) error {
 		schedule.Programs = append(schedule.Programs, program)
 	}
 	return nil
-}
-
-func createProgram(schedule *VierdaagseOverview, title string, startTime time.Time, endTime time.Time, location VierdaagseLocation, description string) VierdaagseProgram {
-	theDay, err := extractDayWithIdFromEvent(schedule, startTime, endTime)
-	if err != nil {
-		slog.Error("could not match date with event, skipping", "event", title)
-		return VierdaagseProgram{}
-	}
-
-	return VierdaagseProgram{
-		IdWithTitle: IdWithTitle{
-			Id:    GetCustomProgramId(),
-			Title: title,
-		},
-		Day: DayWithId{
-			Id:   theDay.IdWithTitle.Id,
-			Date: theDay.Date,
-		},
-		Location:      SingularId{Id: location.IdWithTitle.Id},
-		Description:   description,
-		FullStartTime: startTime,
-		FullEndTime:   endTime,
-	}
-}
-
-func createEventTime(day, startHour, startMinute int) time.Time {
-	year := 2024
-	month := 7
-	theDay := 12 + day
-	return time.Date(year, time.Month(month), theDay, startHour, startMinute, 0, 0, CEST)
 }
 
 // vim: cc=120:

@@ -166,6 +166,7 @@ type VierdaagseProgram struct {
 	FullEndTime        time.Time
 	CalculatedDuration time.Duration
 	DataQualityIssues  DQI
+	RolloverImplied    bool // When we already set the correct start and end time (true), do not correct for ROLLOVER_HOUR_FROM_START_OF_DAY. Nicely defaults to false with JSON Unmarshal.
 }
 
 type VierdaagsePartner struct {

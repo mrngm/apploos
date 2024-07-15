@@ -114,10 +114,10 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 		if prog.FullEndTime.IsZero() {
 			prog.FullEndTime = appendEventTime(prog.Day.Date, prog.EndTime)
 		}
-		if prog.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+		if !prog.RolloverImplied && prog.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
 			prog.FullStartTime = prog.FullStartTime.AddDate(0, 0, 1)
 		}
-		if prog.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+		if !prog.RolloverImplied && prog.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
 			prog.FullEndTime = prog.FullEndTime.AddDate(0, 0, 1)
 		}
 		if prog.FullStartTime.After(prog.FullEndTime) {
@@ -377,7 +377,7 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 
 	if len(programDetails) < 3 {
 		program.DataQualityIssues |= DQIDescriptionEmptyish
-		slog.Info("Removed programDetails after cleaning, length less than 3", "program.Description", program.Description, "cleaned_programDetails", programDetails)
+		slog.Debug("Removed programDetails after cleaning, length less than 3", "program.Description", program.Description, "cleaned_programDetails", programDetails)
 		programDetails = ""
 	}
 
