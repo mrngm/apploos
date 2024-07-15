@@ -119,9 +119,14 @@ h3 {
 #main > section:last-child {
   margin-right: 0em;
 }
+.event:has(h4:target) {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+  background-color: #fffdf0 !important;
+}
 
 section > section {
   margin-bottom: 2ex;
+  scroll-margin-top: 36px;
 }
 
 .artist {
@@ -132,6 +137,14 @@ section > section {
   padding: 0.75ex 0.75ex 1ex 0.5ex;
   font-size: 16pt;
   margin: 0.25em 0 0.25em 0;
+}
+
+/* event after h3, subsequent-sibling combinator */
+h3 ~ .event > h4 {
+  scroll-margin-top: 5.5em;
+}
+.event > h4 {
+  scroll-margin-top: 4em;
 }
 
 dt {
