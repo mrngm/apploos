@@ -364,9 +364,13 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 }
 
 func cleanDescription(in string) string {
-	removals := []string{`<p>`, `</p>`, `<br>`}
+	removals := []string{`<p>`, `</p>`}
 	for _, remove := range removals {
 		in = strings.ReplaceAll(in, remove, "")
+	}
+	replaceWithSpaces := []string{`<br>`, `<br/>`, `<br />`}
+	for _, replace := range replaceWithSpaces {
+		in = strings.ReplaceAll(in, replace, " ")
 	}
 	return strings.TrimSpace(in)
 }
