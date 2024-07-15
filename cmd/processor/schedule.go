@@ -150,6 +150,24 @@ var htmlPrefix = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width" />
     <title>Vierdaagsefeesten 2024</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
+    <script type="text/javascript">
+        function scrollToAnchorOrDay() {
+            if(location.hash != "") {
+                let el = document.getElementById(location.hash.substring(1));
+                el.scrollIntoView();
+            } else {
+                let today = new Date();
+                if(today.getFullYear() == 2024 && today.getMonth() + 1 == 7) {
+                    let currentVierdaagseDay = today.getDate() - 12;
+                    if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
+                        let el = document.getElementById('day-' + currentVierdaagseDay);
+                        el.scrollIntoView();
+                    }
+                }
+            }
+        }
+        window.addEventListener("load", scrollToAnchorOrDay);
+    </script>
   </head>
   <body>
     <a name="top"></a>
@@ -248,7 +266,10 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, theLoc.Title)
+					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1"><a href="#day-%d-lokatie-%s">%s</a></h2>`+"\n",
+						n+1, locs[theLoc.Id].Slug,
+						n+1, locs[theLoc.Id].Slug,
+						theLoc.Title)
 					if err != nil {
 						return nil, err
 					}
@@ -277,7 +298,10 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">%s</h2>`+"\n", n+1, locs[theLoc.Id].Slug, theLoc.Title)
+						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1"><a href="#day-%d-lokatie-%s">%s</a></h2>`+"\n",
+							n+1, locs[theLoc.Id].Slug,
+							n+1, locs[theLoc.Id].Slug,
+							theLoc.Title)
 						if err != nil {
 							return nil, err
 						}
