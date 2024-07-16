@@ -43,6 +43,7 @@ func EnrichScheduleWithThiemeloods(schedule *VierdaagseOverview, calendar ICalen
 			Id:    int(LocationThiemeLoodsId),
 			Title: "Thiemeloods",
 		},
+		Slug: "thiemeloods",
 		// TODO?
 	})
 
@@ -132,6 +133,7 @@ func EnrichScheduleWithOpstand(schedule *VierdaagseOverview) error {
 			Id:    int(LocationOpstandId),
 			Title: "Café De Opstand",
 		},
+		Slug: "cafe-de-opstand",
 		// TODO?
 	}
 
@@ -210,6 +212,7 @@ func EnrichScheduleWithOnderbroek(schedule *VierdaagseOverview) error {
 			Id:    int(LocationOnderbroekId),
 			Title: "De Onderbroek",
 		},
+		Slug: "de-onderbroek",
 		// TODO?
 	}
 
@@ -281,6 +284,7 @@ func EnrichScheduleWithDollars(schedule *VierdaagseOverview) error {
 			Id:    int(LocationDollarsId),
 			Title: "Dollars Muziekcafé",
 		},
+		Slug: "dollars-muziekcafe",
 		// TODO?
 	}
 
@@ -351,6 +355,7 @@ func EnrichScheduleWithVereeniging(schedule *VierdaagseOverview) error {
 			Id:    int(LocationDeVereenigingId),
 			Title: "De Vereeniging",
 		},
+		Slug: "de-vereeniging",
 		// TODO?
 	}
 
