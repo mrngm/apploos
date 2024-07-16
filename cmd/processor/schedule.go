@@ -248,7 +248,7 @@ var testingBanner = `
 `
 
 var navigation = `
-<div id="nav"><ul class="navigation"><li class="nav-left">&larr;</li><li class="nav-right">&rarr;</li><li class="nav-up" onclick="up()">&uarr;</li><li class="nav-down" onclick="down()">&darr;</li></ul></div>
+<div id="nav"><ul class="navigation"><li class="nav-left"><button onclick="left()">&lt;&lt;</button></li><li class="nav-right"><button onclick="right()">&gt;&gt;</button></li><li class="nav-up"><button onclick="up()">Loc ^</button></li><li class="nav-down"><button onclick="down()">Loc v</button></li></ul></div>
 `
 
 func renderParentLocation(buf io.Writer, n int, slug string, title string) error {

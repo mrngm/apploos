@@ -269,12 +269,21 @@ ul.navigation {
 }
 ul.navigation li {
   flex: 0 0 25%;
-  background-color: yellow;
   text-align: center;
 }
-ul.navigation li:hover {
-  background-color: red;
+li button {
+  font-size: 14pt;
+  background-color: #4169e1;
+  border: .2ex solid white;
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+  width: 100%;
+  padding: .5ex;
 }
 
+li button:active {
+  background-color: #99b1f9;
+}
 `)
 var stylesheetCheckumShort = fmt.Sprintf("%x", sha256.Sum256(stylesheetCSS))[0:9]
