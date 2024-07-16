@@ -23,7 +23,7 @@ body {
 }
 
 h1, h2, h3 {
-  font-size: 18pt;
+  font-size: 16pt;
   line-height: 1.5em; /* necessary for accurately doing magic with position: sticky-overlaps */
 }
 
@@ -158,7 +158,7 @@ section > section {
 
 .event {
   padding: 0.75ex 0.75ex 1ex 0.5ex;
-  font-size: 16pt;
+  font-size: 14pt;
   margin: 0.25em 0 0.25em 0;
 }
 
@@ -226,7 +226,7 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 #testing-banner {
   position: fixed;
   min-height: 1.5em;
-  font-size: 16pt;
+  font-size: 12pt;
   background-color: orange;
   color: white;
   font-variant: bold;
