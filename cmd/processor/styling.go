@@ -58,10 +58,12 @@ h3 {
 .bg-yellow {
   background-color: #ffd700 !important;
 }
+/*
 .event:nth-of-type(even) {
   background-color: #c8d6fe !important;
 }
-.event:nth-of-type(odd) {
+*/
+.event {
   background-color: #99b1f9 !important;
 }
 .roze.day > h1 {
@@ -226,11 +228,12 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
   padding: 0.5ex;
 }
 .event.now {
-    background-color: #f99999 !important;
+    background-color: #71f241 !important;
 }
 .event.past {
     filter: saturate(50%);
     background-color: #c8d6fe !important;
+    color: #7f7e7e !important;
 }
 
 .fire-text {
