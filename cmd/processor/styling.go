@@ -69,10 +69,12 @@ h3 {
 .roze.day > h1 {
   background-color: #ff10f0 !important;
 }
+/*
 .roze .event:nth-of-type(even) {
   background-color: #fe5ef7 !important;
 }
-.roze .event:nth-of-type(odd) {
+*/
+.roze .event {
   background-color: #f200e8 !important;
 }
 .roze.day > section > h2 {
@@ -80,6 +82,12 @@ h3 {
 }
 .roze > section > h3 {
   background-color: #fe6ef7 !important;
+}
+
+.roze .event.past {
+    filter: saturate(200%);
+    background-color: #f25eec !important;
+    color: #7f7e7e !important;
 }
 
 .fg-white {
