@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log/slog"
 	"slices"
 	"strconv"
@@ -154,10 +155,12 @@ var htmlPrefix = `<!DOCTYPE html>
         function scrollToAnchorOrDay() {
             if(location.hash != "") {
                 let el = document.getElementById(location.hash.substring(1));
-                el.scrollIntoView();
+                if(el != null) {
+                    el.scrollIntoView();
+                }
             } else {
                 let today = new Date();
-                if(today.getFullYear() == 2024 && today.getMonth() + 1 == 7) {
+                    if(today.getFullYear() == 2024 && today.getMonth() + 1 == 7) {
                     let currentVierdaagseDay = today.getDate() - 12;
                     if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
                         let el = document.getElementById('day-' + currentVierdaagseDay);
@@ -167,15 +170,58 @@ var htmlPrefix = `<!DOCTYPE html>
             }
         }
         window.addEventListener("load", scrollToAnchorOrDay);
+
+        function up() {
+            let firstElement = null;
+            const locations = document.querySelectorAll(".location-title")
+            for(const el of locations) {
+                if(!isInViewport(el)) {
+                    continue;
+                }
+                firstElement = el;
+                break;
+            }
+            let previousSection = firstElement.parentNode.parentNode.previousElementSibling;
+            if(previousSection != null) {
+                previousSection.scrollIntoView();
+            }
+        }
+        function down() {
+            let firstElement = null;
+            const locations = document.querySelectorAll(".location-title")
+            for(const el of locations) {
+                if(!isInViewport(el)) {
+                    continue;
+                }
+                firstElement = el;
+                break;
+            }
+            let nextSection = firstElement.parentNode.parentNode.nextElementSibling;
+            if(nextSection != null) {
+                nextSection.scrollIntoView();
+            }
+        }
     </script>
   </head>
   <body>
     <a name="top"></a>
     <div id="main" class="container">
-`
+` + navigation
 var htmlSuffix = `
     </div>
     <script type="text/javascript">
+    // From https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
+    function isInViewport(el) {
+        const rect = el.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+
+        );
+    }
+
     function highlightNow() {
       let now = new Date()
       document.querySelectorAll(".event").forEach(x => {
@@ -200,6 +246,34 @@ var htmlSuffix = `
 var testingBanner = `
 <div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>
 `
+
+var navigation = `
+<div id="nav"><ul class="navigation"><li class="nav-left">&larr;</li><li class="nav-right">&rarr;</li><li class="nav-up" onclick="up()">&uarr;</li><li class="nav-down" onclick="down()">&darr;</li></ul></div>
+`
+
+func renderParentLocation(buf io.Writer, n int, slug string, title string) error {
+	_, err := fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">`, n+1, slug)
+	if err != nil {
+		return err
+	}
+
+/*
+	if n > 0 {
+		_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&larr;</a>`, n, slug)
+		if err != nil {
+			return err
+		}
+	}
+	if n < 6 {
+		_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&rarr;</a>`, n+2, slug)
+		if err != nil {
+			return err
+		}
+	}
+*/
+	_, err = fmt.Fprintf(buf, `<a class="location-title" href="#day-%d-lokatie-%s">%s</a></h2>`+"\n", n+1, slug, title)
+	return err
+}
 
 func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	buf := new(bytes.Buffer)
@@ -267,10 +341,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			haveRenderedEvents := false
 			if len(renderedParentEvents) > 0 {
 				if !haveRenderedParent {
-					_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1"><a href="#day-%d-lokatie-%s">%s</a></h2>`+"\n",
-						n+1, locs[theLoc.Id].Slug,
-						n+1, locs[theLoc.Id].Slug,
-						theLoc.Title)
+					err = renderParentLocation(buf, n, locs[theLoc.Id].Slug, theLoc.Title)
 					if err != nil {
 						return nil, err
 					}
@@ -299,10 +370,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 				}
 				if len(renderedEvents) > 0 {
 					if !haveRenderedParent {
-						_, err = fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1"><a href="#day-%d-lokatie-%s">%s</a></h2>`+"\n",
-							n+1, locs[theLoc.Id].Slug,
-							n+1, locs[theLoc.Id].Slug,
-							theLoc.Title)
+						err = renderParentLocation(buf, n, locs[theLoc.Id].Slug, theLoc.Title)
 						if err != nil {
 							return nil, err
 						}

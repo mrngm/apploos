@@ -30,7 +30,7 @@ h1, h2, h3 {
 h2, h3 {
   padding-left: 2vw;
 }
-h3 {
+h3, a.location-title, h1 {
   overflow-wrap: normal;
   overflow: hidden;
   text-wrap: nowrap;
@@ -46,14 +46,17 @@ h3 {
   background-color: #d46a6a !important;
 }
 .day > h1 a {
-    display: block;
+    /* display: block; */
     color: black !important;
     text-decoration: none;
 }
 .day > section > h2 a {
-    display: block;
+    /* display: block; */
     color: black !important;
     text-decoration: none;
+}
+a.location-title {
+    padding-left: 1ex;
 }
 .bg-yellow {
   background-color: #ffd700 !important;
@@ -230,7 +233,7 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
   background-color: orange;
   color: white;
   font-variant: bold;
-  bottom: 0;
+  bottom: 1.5em;
   left: 0;
   z-index: 120;
   padding: 0.5ex;
@@ -247,5 +250,31 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
 .fire-text {
   text-shadow: 0ex -0.1ex 0.2ex #fff, 0ex -0.1ex 0.5ex #FF3, 0ex -0.5ex 1ex #F90, 0ex -1ex 2ex #C33;
 }
+
+div#nav {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 150;
+  width: 100vw;
+  font-size: 16pt;
+  height: 1.5em;
+  background-color: red;
+}
+
+ul.navigation {
+  display: flex;
+  flex-flow: row wrap;
+  list-style-type: none;
+}
+ul.navigation li {
+  flex: 0 0 25%;
+  background-color: yellow;
+  text-align: center;
+}
+ul.navigation li:hover {
+  background-color: red;
+}
+
 `)
 var stylesheetCheckumShort = fmt.Sprintf("%x", sha256.Sum256(stylesheetCSS))[0:9]
