@@ -57,9 +57,9 @@ func createProgram(schedule *VierdaagseOverview, title string, startTime time.Ti
 }
 
 func createEventTime(day, startHour, startMinute int) time.Time {
-	year := 2024
+	year := 2025
 	month := 7
-	theDay := 12 + day
+	theDay := 11 + day
 	if startHour < ROLLOVER_HOUR_FROM_START_OF_DAY {
 		theDay++
 	}
