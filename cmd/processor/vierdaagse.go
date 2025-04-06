@@ -25,6 +25,7 @@ const (
 	DQINeededSummaryDescriptionSwap
 	DQISummaryFromDescription
 	DQIOnlySummary
+	DQINoDaySet
 )
 
 // DQIToString formats the encapsulated quality issues into a slug-ish string, separated with spaces
@@ -47,6 +48,9 @@ func DQIToString(issues DQI) string {
 	}
 	if issues&DQIOnlySummary != 0 {
 		ret = append(ret, "only-summary")
+	}
+	if issues&DQINoDaySet != 0 {
+		ret = append(ret, "no-day-set")
 	}
 	return strings.Join(ret, ", ")
 }
@@ -132,7 +136,7 @@ type VierdaagseProgram struct {
 	ActId         int `json:"act_id"`
 	Day           DayWithId
 	DayPart       string `json:"day_part"`
-	SortDate      string
+	SortDate      string `json:"sortDate"`
 	StartTime     string `json:"start_time"`
 	EndTime       string `json:"end_time"`
 	Location      SingularId
@@ -283,6 +287,10 @@ type Image struct {
 type DayWithId struct {
 	Id   int
 	Date time.Time
+}
+
+func (d *DayWithId) IsZero() bool {
+	return d.Id == 0 || d.Date.IsZero()
 }
 
 type SingularId struct {

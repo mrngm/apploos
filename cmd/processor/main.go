@@ -168,6 +168,7 @@ func main() {
 		everything = try
 	}
 
+/*
 	if len(*icalFile) > 0 {
 		calendar, err := readICalFile(*icalFile)
 		if err != nil {
@@ -193,6 +194,7 @@ func main() {
 	if err := EnrichScheduleWithVereeniging(&everything); err != nil {
 		slog.Error("could not enrich schedule with Vereeniging", "err", err)
 	}
+*/
 
 	output, err := RenderSchedule(everything)
 	if err != nil {

@@ -109,6 +109,27 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 		// Calculate full start time and full end time. The start time is on the scheduled day. The end time might be on
 		// the next day. Thanks to @yorickvP, we use ROLLOVER_HOUR_FROM_START_OF_DAY to determine if the event should be
 		// shifted to the next day
+		dayId := 0
+		if prog.Day.IsZero() {
+			prog.DataQualityIssues |= DQINoDaySet
+			if strings.HasPrefix(prog.SortDate, "20250712") {
+				dayId = 370538
+			} else if strings.HasPrefix(prog.SortDate, "20250713") {
+				dayId = 370546
+			} else if strings.HasPrefix(prog.SortDate, "20250714") {
+				dayId = 370547
+			} else if strings.HasPrefix(prog.SortDate, "20250715") {
+				dayId = 370548
+			} else if strings.HasPrefix(prog.SortDate, "20250716") {
+				dayId = 370549
+			} else if strings.HasPrefix(prog.SortDate, "20250717") {
+				dayId = 370550
+			} else if strings.HasPrefix(prog.SortDate, "20250718") {
+				dayId = 370551
+			}
+		} else {
+			dayId = prog.Day.Id
+		}
 		if prog.FullStartTime.IsZero() {
 			prog.FullStartTime = appendEventTime(prog.Day.Date, prog.StartTime)
 		}
@@ -130,10 +151,10 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 		if _, ok := programs[prog.IdWithTitle.Id]; !ok {
 			programs[prog.IdWithTitle.Id] = &prog
 		}
-		if _, ok := dayToPrograms[prog.Day.Id]; !ok {
-			dayToPrograms[prog.Day.Id] = make([]*VierdaagseProgram, 0)
+		if _, ok := dayToPrograms[dayId]; !ok {
+			dayToPrograms[dayId] = make([]*VierdaagseProgram, 0)
 		}
-		dayToPrograms[prog.Day.Id] = append(dayToPrograms[prog.Day.Id], &prog)
+		dayToPrograms[dayId] = append(dayToPrograms[dayId], &prog)
 	}
 	for dayId := range dayToPrograms {
 		slices.SortFunc(dayToPrograms[dayId], func(a, b *VierdaagseProgram) int {
