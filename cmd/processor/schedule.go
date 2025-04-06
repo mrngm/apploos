@@ -525,7 +525,7 @@ func formatProgramSlug(program *VierdaagseProgram) string {
 }
 
 var (
-	RozeWoensdagStart = time.Date(2024, 7, 17, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
+	RozeWoensdagStart = time.Date(2025, 7, 16, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
 	RozeWoensdagEnd   = RozeWoensdagStart.AddDate(0, 0, 1).Add(-1 * time.Nanosecond)
 )
 
