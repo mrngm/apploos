@@ -110,7 +110,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			Title:      prog.IdWithTitle.Title,
 			Slug:       formatProgramSlug(prog),
 			Summary:    prog.DescriptionShort,
-			Details:    cleanDescription(prog.Description),
+			Details:    cleanupHTML(prog.Description),
 		}
 
 		// Record some data quality issues, try to fix some
@@ -442,18 +442,6 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 */
-
-func cleanDescription(in string) string {
-	removals := []string{`<p>`, `</p>`}
-	for _, remove := range removals {
-		in = strings.ReplaceAll(in, remove, "")
-	}
-	replaceWithSpaces := []string{`<br>`, `<br/>`, `<br />`}
-	for _, replace := range replaceWithSpaces {
-		in = strings.ReplaceAll(in, replace, " ")
-	}
-	return strings.TrimSpace(in)
-}
 
 func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	return ""
