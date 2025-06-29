@@ -109,7 +109,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			LocationId: prog.Location.Id,
 			Title:      prog.IdWithTitle.Title,
 			Slug:       formatProgramSlug(prog),
-			Summary:    prog.DescriptionShort,
+			Summary:    cleanupHTML(prog.DescriptionShort),
 			Details:    cleanupHTML(prog.Description),
 		}
 
