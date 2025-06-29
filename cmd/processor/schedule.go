@@ -191,7 +191,7 @@ var htmlPrefix = `<!DOCTYPE html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Vierdaagsefeesten 2024</title>
+    <title>Vierdaagsefeesten 2025</title>
     <link rel="stylesheet" type="text/css" href="style.css?` + stylesheetCheckumShort + `" />
     <script type="text/javascript">
         function scrollToAnchorOrDay() {
@@ -202,8 +202,8 @@ var htmlPrefix = `<!DOCTYPE html>
                 }
             } else {
                 let today = new Date();
-                    if(today.getFullYear() == 2024 && today.getMonth() + 1 == 7) {
-                    let currentVierdaagseDay = today.getDate() - 12;
+                    if(today.getFullYear() == 2025 && today.getMonth() + 1 == 7) {
+                    let currentVierdaagseDay = today.getDate() - 11;
                     if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
                         let el = document.getElementById('day-' + currentVierdaagseDay);
                         el.scrollIntoView();
