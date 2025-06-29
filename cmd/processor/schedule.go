@@ -248,7 +248,7 @@ var htmlPrefix = `<!DOCTYPE html>
   <body>
     <a name="top"></a>
     <div id="main" class="container">
-` + navigation
+`
 var htmlSuffix = `
     </div>
     <script type="text/javascript">
@@ -336,6 +336,10 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	}
 	if !*prod {
 		_, err = fmt.Fprint(buf, testingBanner+"\n")
+		if err != nil {
+			return nil, err
+		}
+		_, err = fmt.Fprint(buf, navigation+"\n")
 		if err != nil {
 			return nil, err
 		}
