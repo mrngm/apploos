@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
+	"html/template"
 	"log/slog"
 	"slices"
 	"strconv"
@@ -11,34 +11,30 @@ import (
 	"time"
 )
 
-type Location struct {
-	Id        int
-	Title     string
-	Slug      string
-	HasParent bool
-	Children  []*Location
-}
-
-func (l *Location) String() string {
-	return fmt.Sprintf("[%d] %s nChildren: %d", l.Id, l.Title, len(l.Children))
-}
-
-func SetupDays(everything VierdaagseOverview) []VierdaagseDay {
-	days := make([]VierdaagseDay, len(everything.Days))
-	copy(days, everything.Days)
-	slices.SortFunc(days, func(a, b VierdaagseDay) int {
+func SetupDays(everything VierdaagseOverview) []*Day {
+	days := make([]*Day, len(everything.Days))
+	for i, day := range everything.Days {
+		days[i] = &Day{
+			Id:    day.IdWithTitle.Id,
+			Title: day.IdWithTitle.Title,
+			Date:  day.Date,
+		}
+	}
+	slices.SortFunc(days, func(a, b *Day) int {
 		return a.Date.Compare(b.Date)
 	})
 	return days
 }
 
-func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []string) {
+func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Location) {
 	locations := make(map[int]*Location)
 	parentLocations := 0
 	for _, loc := range everything.Locations {
 		if _, ok := locations[loc.Id]; !ok {
 			locations[loc.Id] = &Location{
-				Children: make([]*Location, 0),
+				ProgramsByDay:        make(map[int][]*Program, 0),
+				Children:             make([]*Location, 0),
+				TotalNrProgramsByDay: make(map[int]int, 0),
 			}
 		}
 		theLoc := locations[loc.Id]
@@ -67,23 +63,25 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []string)
 		}
 	}
 
-	sortedParents := make([]string, 0, parentLocations)
+	sortedMainLocations := make([]*Location, 0, parentLocations)
 	for _, theLoc := range locations {
 		if len(theLoc.Children) > 0 || !theLoc.HasParent {
-			sortedParents = append(sortedParents, theLoc.Title)
+			sortedMainLocations = append(sortedMainLocations, theLoc)
 			// Sort the children based on name
-			slices.SortFunc(theLoc.Children, func(a, b *Location) int {
-				return strings.Compare(a.Title, b.Title)
-			})
-			for _, loc := range theLoc.Children {
-				if len(loc.Children) > 0 {
-					slog.Error("child location has more locations", "len", len(loc.Children))
+			slices.SortFunc(theLoc.Children, CompareLocationByTitle)
+			for _, childLoc := range theLoc.Children {
+				if len(childLoc.Children) > 0 {
+					slog.Error("child location has more locations", "len", len(childLoc.Children))
 				}
 			}
 		}
 	}
-	slices.Sort(sortedParents)
-	return locations, sortedParents
+	slices.SortFunc(sortedMainLocations, CompareLocationByTitle)
+	return locations, sortedMainLocations
+}
+
+func CompareLocationByTitle(a, b *Location) int {
+	return strings.Compare(a.Title, b.Title)
 }
 
 func appendEventTime(initialTime time.Time, eventTime string) time.Time {
@@ -101,18 +99,60 @@ func appendEventTime(initialTime time.Time, eventTime string) time.Time {
 	return initialTime
 }
 
-func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, map[int][]*VierdaagseProgram) {
-	dayToPrograms := make(map[ /* dayId */ int][] /* sorted slice based on start_time full details */ *VierdaagseProgram)
-	programs := make(map[int]*VierdaagseProgram)
+func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*Program) {
+	dayToPrograms := make(map[ /* dayId */ int][] /* sorted slice based on start_time full details */ *Program)
+	programs := make(map[int]*Program)
 	for _, prog := range everything.Programs {
 		prog := prog
+		program := &Program{
+			Id:         prog.IdWithTitle.Id,
+			LocationId: prog.Location.Id,
+			Title:      prog.IdWithTitle.Title,
+			Slug:       formatProgramSlug(prog),
+			Summary:    prog.DescriptionShort,
+			Details:    cleanDescription(prog.Description),
+		}
+
+		// Record some data quality issues, try to fix some
+		if len(program.Details) < 3 {
+			program.DataQualityIssues |= DQIDescriptionEmptyish
+			slog.Debug("Removed programDetails after cleaning, length less than 3", "prog.Description", prog.Description, "cleaned_programDetails", program.Details)
+			program.Details = ""
+		}
+
+		if len(program.Summary) == 0 && len(program.Details) > 0 {
+			program.DataQualityIssues |= DQISummaryEmptyish
+			lowestIndex := len(program.Details)
+			lowestSeparator := "."
+			for _, sep := range []string{".", "!", "?"} {
+				if idx := strings.Index(program.Details, sep+" "); idx > -1 && idx < lowestIndex {
+					lowestIndex = idx
+					lowestSeparator = sep
+				}
+			}
+			firstSentence, theRest, ok := strings.Cut(program.Details, lowestSeparator+" ")
+			if !ok {
+				// Swap summary and details
+				program.DataQualityIssues |= DQINeededSummaryDescriptionSwap
+				program.Summary, program.Details = program.Details, program.Summary
+			} else {
+				program.DataQualityIssues |= DQISummaryFromDescription
+				program.Summary = firstSentence + lowestSeparator
+				program.Details = theRest
+			}
+		}
+
+		if len(program.Details) == 0 || program.Title == program.Details {
+			program.DataQualityIssues |= DQIOnlySummary
+		}
+
 		// Calculate full start time and full end time. The start time is on the scheduled day. The end time might be on
 		// the next day. Thanks to @yorickvP, we use ROLLOVER_HOUR_FROM_START_OF_DAY to determine if the event should be
 		// shifted to the next day
 		dayId := 0
 		theDayDate := time.Time{}
 		if prog.Day.IsZero() {
-			prog.DataQualityIssues |= DQINoDaySet
+			program.DataQualityIssues |= DQINoDaySet
 			if strings.HasPrefix(prog.SortDate, "20250712") {
 				dayId = 370538
 				theDayDate = time.Date(2025, 7, 12, 0, 0, 0, 0, CEST)
@@ -139,46 +179,47 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 			dayId = prog.Day.Id
 			theDayDate = prog.Day.Date
 		}
+		program.DayId = dayId
 		if prog.StartTime == "" {
 			// Try to derive the start time from SortDate
 			if strings.HasPrefix(prog.SortDate, "2025071") && len(prog.SortDate) == 12 {
-				prog.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
-				prog.StartTimeEstimated = true
+				program.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
+				program.StartTimeEstimated = true
 			}
 		}
 		if prog.EndTime == "" {
 			// Guesstimate that the program takes 30m
-			prog.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
-			prog.EndTimeEstimated = true
+			program.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
+			program.EndTimeEstimated = true
 		}
-		if prog.FullStartTime.IsZero() && prog.StartTime != "" {
-			prog.FullStartTime = appendEventTime(theDayDate, prog.StartTime)
+		if program.FullStartTime.IsZero() && prog.StartTime != "" {
+			program.FullStartTime = appendEventTime(theDayDate, prog.StartTime)
 		}
-		if prog.FullEndTime.IsZero() && prog.EndTime != "" {
-			prog.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
+		if program.FullEndTime.IsZero() && prog.EndTime != "" {
+			program.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
 		}
-		if !prog.RolloverImplied && prog.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
-			prog.FullStartTime = prog.FullStartTime.AddDate(0, 0, 1)
+		if !prog.RolloverImplied && program.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+			program.FullStartTime = program.FullStartTime.AddDate(0, 0, 1)
 		}
-		if !prog.RolloverImplied && prog.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
-			prog.FullEndTime = prog.FullEndTime.AddDate(0, 0, 1)
+		if !prog.RolloverImplied && program.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+			program.FullEndTime = program.FullEndTime.AddDate(0, 0, 1)
 		}
-		if prog.FullStartTime.After(prog.FullEndTime) {
+		if program.FullStartTime.After(program.FullEndTime) {
 			// EndTime should be after StartTime
-			prog.DataQualityIssues |= DQIEndTimeBeforeStart
+			program.DataQualityIssues |= DQIEndTimeBeforeStart
 		}
-		prog.CalculatedDuration = prog.FullEndTime.Sub(prog.FullStartTime)
+		program.CalculatedDuration = program.FullEndTime.Sub(program.FullStartTime)
 
-		if _, ok := programs[prog.IdWithTitle.Id]; !ok {
-			programs[prog.IdWithTitle.Id] = &prog
+		if _, ok := programs[program.Id]; !ok {
+			programs[program.Id] = program
 		}
 		if _, ok := dayToPrograms[dayId]; !ok {
-			dayToPrograms[dayId] = make([]*VierdaagseProgram, 0)
+			dayToPrograms[dayId] = make([]*Program, 0)
 		}
-		dayToPrograms[dayId] = append(dayToPrograms[dayId], &prog)
+		dayToPrograms[dayId] = append(dayToPrograms[dayId], program)
 	}
 	for dayId := range dayToPrograms {
-		slices.SortFunc(dayToPrograms[dayId], func(a, b *VierdaagseProgram) int {
+		slices.SortFunc(dayToPrograms[dayId], func(a, b *Program) int {
 			return a.FullStartTime.Compare(b.FullStartTime) // NB: sometimes the SortDate has typo's, so use the interpreted times
 		})
 	}
@@ -186,154 +227,89 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 	return programs, dayToPrograms
 }
 
-var htmlPrefix = `<!DOCTYPE html>
-<html lang="nl">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Vierdaagsefeesten 2025</title>
-    <link rel="stylesheet" type="text/css" href="style.css?` + stylesheetCheckumShort + `" />
-    <script type="text/javascript">
-        function scrollToAnchorOrDay() {
-            if(location.hash != "") {
-                let el = document.getElementById(location.hash.substring(1));
-                if(el != null) {
-                    el.scrollIntoView();
-                }
-            } else {
-                let today = new Date();
-                    if(today.getFullYear() == 2025 && today.getMonth() + 1 == 7) {
-                    let currentVierdaagseDay = today.getDate() - 11;
-                    if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
-                        let el = document.getElementById('day-' + currentVierdaagseDay);
-                        el.scrollIntoView();
-                    }
-                }
-            }
-        }
-        window.addEventListener("load", scrollToAnchorOrDay);
+func augmentLocationWithPrograms(location *Location, dayId int, progs []*Program) {
+	if _, ok := location.ProgramsByDay[dayId]; !ok {
+		location.ProgramsByDay[dayId] = make([]*Program, 0)
+	}
+	if _, ok := location.TotalNrProgramsByDay[dayId]; !ok {
+		location.TotalNrProgramsByDay[dayId] = 0
+	}
+	for _, prog := range progs {
+		if prog.LocationId != location.Id {
+			continue
+		}
+		// SetupPrograms already sorts by FullStartTime
+		location.ProgramsByDay[dayId] = append(location.ProgramsByDay[dayId], prog)
+		location.TotalNrProgramsByDay[dayId]++
+	}
+}
 
-        function up() {
-            let firstElement = null;
-            const locations = document.querySelectorAll(".location-title")
-            for(const el of locations) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let previousSection = firstElement.parentNode.parentNode.previousElementSibling;
-            if(previousSection != null) {
-                previousSection.scrollIntoView();
-            }
-        }
-        function down() {
-            let firstElement = null;
-            const locations = document.querySelectorAll(".location-title")
-            for(const el of locations) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let nextSection = firstElement.parentNode.parentNode.nextElementSibling;
-            if(nextSection != null) {
-                nextSection.scrollIntoView();
-            }
-        }
-    </script>
-  </head>
-  <body>
-    <a name="top"></a>
-    <div id="main" class="container">
-`
-var htmlSuffix = `
-    </div>
-    <script type="text/javascript">
-    // From https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-    function isInViewport(el) {
-        const rect = el.getBoundingClientRect();
-        return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+func SetupSchedule(everything VierdaagseOverview) *Schedule {
+	_, sortedMainLocations := SetupLocations(everything)
+	_, dayToPrograms := SetupPrograms(everything)
 
-        );
-    }
-
-    function highlightNow() {
-      let now = new Date()
-      document.querySelectorAll(".event").forEach(x => {
-        const [start, end] = Array.from(x.querySelectorAll("time")).map(y => new Date(y.getAttribute("datetime")))
-        if (start <= now && now <= end) {
-          x.classList.add("now")
-        } else if (end <= now) {
-          x.classList.add("past")
-          x.classList.remove("now")
-        }
-      })
-      now = new Date();
-      const nextMinute = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes() + 1, 0, 0);
-      setTimeout(highlightNow, nextMinute - now);
-    }
-    highlightNow()
-    </script>
-  </body>
-</html>
-`
-
-var testingBanner = `
-<div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>
-`
-
-var navigation = `
-<div id="nav"><ul class="navigation"><li class="nav-left"><button onclick="left()">&lt;&lt;</button></li><li class="nav-right"><button onclick="right()">&gt;&gt;</button></li><li class="nav-up"><button onclick="up()">Loc ^</button></li><li class="nav-down"><button onclick="down()">Loc v</button></li></ul></div>
-`
-
-func renderParentLocation(buf io.Writer, n int, slug string, title string) error {
-	_, err := fmt.Fprintf(buf, `  <section id="day-%d-lokatie-%s"><h2 class="sticky-1">`, n+1, slug)
-	if err != nil {
-		return err
+	// Augment each main location and their child locations with their program for each day
+	for dayId, progs := range dayToPrograms {
+		for _, location := range sortedMainLocations {
+			augmentLocationWithPrograms(location, dayId, progs)
+			for _, childLocation := range location.Children {
+				augmentLocationWithPrograms(childLocation, dayId, progs)
+				// Add total number of events to parent location
+				location.TotalNrProgramsByDay[dayId] += childLocation.TotalNrProgramsByDay[dayId]
+			}
+		}
 	}
 
-	/*
-		if n > 0 {
-			_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&larr;</a>`, n, slug)
-			if err != nil {
-				return err
-			}
-		}
-		if n < 6 {
-			_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&rarr;</a>`, n+2, slug)
-			if err != nil {
-				return err
-			}
-		}
-	*/
-	_, err = fmt.Fprintf(buf, `<a class="location-title" href="#day-%d-lokatie-%s">%s</a></h2>`+"\n", n+1, slug, title)
-	return err
+	return &Schedule{
+		Days:      SetupDays(everything),
+		Locations: sortedMainLocations,
+	}
 }
 
 func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	var err error
 
+	schedule := SetupSchedule(everything)
 	// Day -> Location (parent) -> Lcations (child) -> Event
-	days := SetupDays(everything)
-	locs, sortedParents := SetupLocations(everything)
-	_, day2Program := SetupPrograms(everything)
+	//locs, sortedParents := SetupLocations(everything)
+	//_, day2Program := SetupPrograms(everything)
 
-	slog.Info("sortedParents", "sortedParents", sortedParents)
+	//slog.Info("sortedParents", "sortedParents", sortedParents)
 
-	eventIssues := make([]string, 0)
+	//eventIssues := make([]string, 0)
 
-	_, err = fmt.Fprint(buf, htmlPrefix)
+	templateFuncs := template.FuncMap{
+		"add": func(a, b int) int { return a + b },
+		"isRoze": func(t time.Time) bool {
+			cmp := t.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour)
+			return cmp.After(RozeWoensdagStart) && cmp.Before(RozeWoensdagEnd)
+		},
+		"formatRFC3339DatetimeAttr": func(t time.Time) template.HTMLAttr {
+			return template.HTMLAttr(`datetime="` + t.Format(time.RFC3339) + `"`)
+		},
+		"formatHourMins": func(t time.Time) string { return t.Format("15:04") },
+	}
+
+	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))
+	templateData := struct {
+		StylesheetChecksumShort string
+		Schedule                *Schedule
+	}{
+		StylesheetChecksumShort: stylesheetCheckumShort,
+		Schedule:                schedule,
+	}
+
+	err = tpl.Execute(buf, templateData)
+
 	if err != nil {
 		return nil, err
 	}
+	return buf.Bytes(), nil
+}
+
+/*
+
 	if !*prod {
 		_, err = fmt.Fprint(buf, testingBanner+"\n")
 		if err != nil {
@@ -345,18 +321,6 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 		}
 	}
 	for n, day := range days {
-		roze := onRozeWoensdagFromTime(day.Date.Add(1*time.Second + time.Duration(ROLLOVER_HOUR_FROM_START_OF_DAY)*time.Hour))
-		dayPrefix := ""
-		daySectionClass := ""
-		if roze {
-			dayPrefix = "Roze "
-			daySectionClass = "roze"
-		}
-		_, err = fmt.Fprintf(buf, `<section class="%s day" id="day-%d"><h1 class="sticky-0"><a href="#day-%d">Dag %d, %s<time datetime="%s">%s</time></a></h1>`+"\n",
-			daySectionClass, n+1, n+1, n+1, dayPrefix, day.Date.Format(time.RFC3339), day.IdWithTitle.Title)
-		if err != nil {
-			return nil, err
-		}
 		dayId := day.IdWithTitle.Id
 		// Don't look down, really inefficient loops ahead
 		for _, parentLoc := range sortedParents {
@@ -477,6 +441,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 }
+*/
 
 func cleanDescription(in string) string {
 	removals := []string{`<p>`, `</p>`}
@@ -491,78 +456,58 @@ func cleanDescription(in string) string {
 }
 
 func renderEvent(program *VierdaagseProgram, isEven bool) string {
-	programSummary := program.DescriptionShort
-	programDetails := cleanDescription(program.Description)
+	return ""
+	/*
+	   ticketAddition := ""
 
-	if len(programDetails) < 3 {
-		program.DataQualityIssues |= DQIDescriptionEmptyish
-		slog.Debug("Removed programDetails after cleaning, length less than 3", "program.Description", program.Description, "cleaned_programDetails", programDetails)
-		programDetails = ""
-	}
+	   	if program.TicketsPrice > 0 {
+	   		if len(program.TicketsLink) > 0 {
+	   			ticketAddition = ` (<a target="_blank" href="` + program.TicketsLink + `" title="Ticket kopen voor ` + program.Title + `">€</a>)`
+	   		} else {
+	   			ticketAddition = ` (€)`
+	   		}
+	   		if program.TicketsSoldOut {
+	   			ticketAddition = ticketAddition + ` (uitverkocht)`
+	   		}
+	   	}
 
-	if len(programSummary) == 0 && len(programDetails) > 0 {
-		program.DataQualityIssues |= DQISummaryEmptyish
-		lowestIndex := len(programDetails)
-		lowestSeparator := "."
-		for _, sep := range []string{".", "!", "?"} {
-			if idx := strings.Index(programDetails, sep+" "); idx > -1 && idx < lowestIndex {
-				lowestIndex = idx
-				lowestSeparator = sep
-			}
-		}
-		firstSentence, theRest, ok := strings.Cut(programDetails, lowestSeparator+" ")
-		if !ok {
-			// Swap summary and details
-			program.DataQualityIssues |= DQINeededSummaryDescriptionSwap
-			programSummary, programDetails = programDetails, programSummary
-		} else {
-			program.DataQualityIssues |= DQISummaryFromDescription
-			programSummary = firstSentence + lowestSeparator
-			programDetails = theRest
-		}
-	}
+	   specialtyClass := ""
 
-	ticketAddition := ""
-	if program.TicketsPrice > 0 {
-		if len(program.TicketsLink) > 0 {
-			ticketAddition = ` (<a target="_blank" href="` + program.TicketsLink + `" title="Ticket kopen voor ` + program.Title + `">€</a>)`
-		} else {
-			ticketAddition = ` (€)`
-		}
-		if program.TicketsSoldOut {
-			ticketAddition = ticketAddition + ` (uitverkocht)`
-		}
-	}
-	specialtyClass := ""
-	if strings.Contains(strings.ToLower(program.Title), "vuurwerkspektakel") {
-		specialtyClass = " fire-text"
-	}
-	startTimeEstimatedIndicator := ""
-	endTimeEstimatedIndicator := ""
-	if program.StartTimeEstimated {
-		startTimeEstimatedIndicator = "?"
-	}
-	if program.EndTimeEstimated {
-		endTimeEstimatedIndicator = "?"
-	}
-	if len(programDetails) == 0 || program.Title == programDetails {
-		program.DataQualityIssues |= DQIOnlySummary
-		return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
-			specialtyClass,
-			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
-			program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
-			program.Title, ticketAddition, programSummary)
-	}
+	   	if strings.Contains(strings.ToLower(program.Title), "vuurwerkspektakel") {
+	   		specialtyClass = " fire-text"
+	   	}
 
-	return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4>`+
-		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
-		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
-		specialtyClass,
-		formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
-		program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
-		program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
-		program.IdWithTitle.Id,
-		programDetails)
+	   startTimeEstimatedIndicator := ""
+	   endTimeEstimatedIndicator := ""
+
+	   	if program.StartTimeEstimated {
+	   		startTimeEstimatedIndicator = "?"
+	   	}
+
+	   	if program.EndTimeEstimated {
+	   		endTimeEstimatedIndicator = "?"
+	   	}
+
+	   	if len(programDetails) == 0 || program.Title == programDetails {
+	   		program.DataQualityIssues |= DQIOnlySummary
+	   		return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
+	   			specialtyClass,
+	   			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
+	   			program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
+	   			program.Title, ticketAddition, programSummary)
+	   	}
+
+	   return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4>`+
+
+	   	`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
+	   	`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
+	   	specialtyClass,
+	   	formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
+	   	program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
+	   	program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
+	   	program.IdWithTitle.Id,
+	   	programDetails)
+	*/
 }
 
 func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
@@ -574,7 +519,7 @@ func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
 	)
 }
 
-func formatProgramSlug(program *VierdaagseProgram) string {
+func formatProgramSlug(program VierdaagseProgram) string {
 	if program.Slug == "" {
 		return fmt.Sprintf("unknown-slug-%d", program.IdWithTitle.Id)
 	}
