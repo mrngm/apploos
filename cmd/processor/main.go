@@ -168,33 +168,33 @@ func main() {
 		everything = try
 	}
 
-/*
-	if len(*icalFile) > 0 {
-		calendar, err := readICalFile(*icalFile)
-		if err != nil {
-			os.Exit(1)
+	/*
+		if len(*icalFile) > 0 {
+			calendar, err := readICalFile(*icalFile)
+			if err != nil {
+				os.Exit(1)
+			}
+			if err := EnrichScheduleWithThiemeloods(&everything, calendar); err != nil {
+				slog.Error("could not enrich schedule with Thiemeloods", "err", err)
+			}
 		}
-		if err := EnrichScheduleWithThiemeloods(&everything, calendar); err != nil {
-			slog.Error("could not enrich schedule with Thiemeloods", "err", err)
+
+		if err := EnrichScheduleWithOpstand(&everything); err != nil {
+			slog.Error("could not enrich schedule with Opstand", "err", err)
 		}
-	}
 
-	if err := EnrichScheduleWithOpstand(&everything); err != nil {
-		slog.Error("could not enrich schedule with Opstand", "err", err)
-	}
+		if err := EnrichScheduleWithOnderbroek(&everything); err != nil {
+			slog.Error("could not enrich schedule with Onderbroek", "err", err)
+		}
 
-	if err := EnrichScheduleWithOnderbroek(&everything); err != nil {
-		slog.Error("could not enrich schedule with Onderbroek", "err", err)
-	}
+		if err := EnrichScheduleWithDollars(&everything); err != nil {
+			slog.Error("could not enrich schedule with Dollars", "err", err)
+		}
 
-	if err := EnrichScheduleWithDollars(&everything); err != nil {
-		slog.Error("could not enrich schedule with Dollars", "err", err)
-	}
-
-	if err := EnrichScheduleWithVereeniging(&everything); err != nil {
-		slog.Error("could not enrich schedule with Vereeniging", "err", err)
-	}
-*/
+		if err := EnrichScheduleWithVereeniging(&everything); err != nil {
+			slog.Error("could not enrich schedule with Vereeniging", "err", err)
+		}
+	*/
 
 	output, err := RenderSchedule(everything)
 	if err != nil {

@@ -110,31 +110,52 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*VierdaagseProgram, m
 		// the next day. Thanks to @yorickvP, we use ROLLOVER_HOUR_FROM_START_OF_DAY to determine if the event should be
 		// shifted to the next day
 		dayId := 0
+		theDayDate := time.Time{}
 		if prog.Day.IsZero() {
 			prog.DataQualityIssues |= DQINoDaySet
 			if strings.HasPrefix(prog.SortDate, "20250712") {
 				dayId = 370538
+				theDayDate = time.Date(2025, 7, 12, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250713") {
 				dayId = 370546
+				theDayDate = time.Date(2025, 7, 13, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250714") {
 				dayId = 370547
+				theDayDate = time.Date(2025, 7, 14, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250715") {
 				dayId = 370548
+				theDayDate = time.Date(2025, 7, 15, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250716") {
 				dayId = 370549
+				theDayDate = time.Date(2025, 7, 16, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250717") {
 				dayId = 370550
+				theDayDate = time.Date(2025, 7, 17, 0, 0, 0, 0, CEST)
 			} else if strings.HasPrefix(prog.SortDate, "20250718") {
 				dayId = 370551
+				theDayDate = time.Date(2025, 7, 18, 0, 0, 0, 0, CEST)
 			}
 		} else {
 			dayId = prog.Day.Id
+			theDayDate = prog.Day.Date
 		}
-		if prog.FullStartTime.IsZero() {
-			prog.FullStartTime = appendEventTime(prog.Day.Date, prog.StartTime)
+		if prog.StartTime == "" {
+			// Try to derive the start time from SortDate
+			if strings.HasPrefix(prog.SortDate, "2025071") && len(prog.SortDate) == 12 {
+				prog.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
+				prog.StartTimeEstimated = true
+			}
 		}
-		if prog.FullEndTime.IsZero() {
-			prog.FullEndTime = appendEventTime(prog.Day.Date, prog.EndTime)
+		if prog.EndTime == "" {
+			// Guesstimate that the program takes 30m
+			prog.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
+			prog.EndTimeEstimated = true
+		}
+		if prog.FullStartTime.IsZero() && prog.StartTime != "" {
+			prog.FullStartTime = appendEventTime(theDayDate, prog.StartTime)
+		}
+		if prog.FullEndTime.IsZero() && prog.EndTime != "" {
+			prog.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
 		}
 		if !prog.RolloverImplied && prog.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
 			prog.FullStartTime = prog.FullStartTime.AddDate(0, 0, 1)
@@ -278,20 +299,20 @@ func renderParentLocation(buf io.Writer, n int, slug string, title string) error
 		return err
 	}
 
-/*
-	if n > 0 {
-		_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&larr;</a>`, n, slug)
-		if err != nil {
-			return err
+	/*
+		if n > 0 {
+			_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&larr;</a>`, n, slug)
+			if err != nil {
+				return err
+			}
 		}
-	}
-	if n < 6 {
-		_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&rarr;</a>`, n+2, slug)
-		if err != nil {
-			return err
+		if n < 6 {
+			_, err := fmt.Fprintf(buf, `<a href="#day-%d-lokatie-%s">&rarr;</a>`, n+2, slug)
+			if err != nil {
+				return err
+			}
 		}
-	}
-*/
+	*/
 	_, err = fmt.Fprintf(buf, `<a class="location-title" href="#day-%d-lokatie-%s">%s</a></h2>`+"\n", n+1, slug, title)
 	return err
 }
@@ -512,20 +533,30 @@ func renderEvent(program *VierdaagseProgram, isEven bool) string {
 	if strings.Contains(strings.ToLower(program.Title), "vuurwerkspektakel") {
 		specialtyClass = " fire-text"
 	}
+	startTimeEstimatedIndicator := ""
+	endTimeEstimatedIndicator := ""
+	if program.StartTimeEstimated {
+		startTimeEstimatedIndicator = "?"
+	}
+	if program.EndTimeEstimated {
+		endTimeEstimatedIndicator = "?"
+	}
 	if len(programDetails) == 0 || program.Title == programDetails {
 		program.DataQualityIssues |= DQIOnlySummary
-		return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
+		return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4><dd class="summary">%s</dd></div>`+"\n",
 			specialtyClass,
-			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"),
-			program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), program.Title, ticketAddition, programSummary)
+			formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
+			program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
+			program.Title, ticketAddition, programSummary)
 	}
 
-	return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time> - <time datetime="%s">%s</time> %s%s</h4>`+
+	return fmt.Sprintf(`    <div class="event%s"><h4 id="%s"><time datetime="%s">%s</time>%s - <time datetime="%s">%s</time>%s %s%s</h4>`+
 		`<input type="checkbox" class="meer-toggle" id="meer-%d" /><dd class="summary">%s `+
 		`<label for="meer-%d" class="hide"></label></dd><dd class="description">%s</dd></div>`+"\n",
 		specialtyClass,
-		formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"),
-		program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
+		formatProgramSlug(program), program.FullStartTime.Format(time.RFC3339), program.FullStartTime.Format("15:04"), startTimeEstimatedIndicator,
+		program.FullEndTime.Format(time.RFC3339), program.FullEndTime.Format("15:04"), endTimeEstimatedIndicator,
+		program.Title, ticketAddition, program.IdWithTitle.Id, programSummary,
 		program.IdWithTitle.Id,
 		programDetails)
 }
@@ -535,6 +566,7 @@ func logProgramDetailsWithDay(day VierdaagseDay, program *VierdaagseProgram) {
 		"startTime", program.FullStartTime,
 		"endTime", program.FullEndTime,
 		"duration", program.CalculatedDuration,
+		"startTimeEstimated", program.StartTimeEstimated,
 	)
 }
 
