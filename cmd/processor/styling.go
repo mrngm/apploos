@@ -193,27 +193,62 @@ h3 ~ dt {
   hyphens: auto;
 }
 
-label.hide {
-  text-decoration: underline;
-}
-
 dd.description {
   display: none;
 }
 
-input:checked ~ dd.description {
+/* Toggle descriptions */
+input.hide-description-toggle:checked ~ dd.description {
   display: block;
 }
-input.meer-toggle {
+input.hide-description-toggle {
   display: none;
 }
 
-label.hide::after {
+label.hide-description {
+  text-decoration: underline;
+}
+label.hide-description::after {
   content: '(meer)';
 }
-input:checked ~ dd.summary label.hide::after {
+input.hide-description-toggle:checked ~ dd.summary label.hide-description::after {
   content: '(minder)';
 }
+/* End toggle description */
+
+/* Toggle location; default state is unchecked, and we called it 'hide-location', so only hide the location when it's checked  */
+h2:has(input.hide-location-toggle:checked) ~ div.events-all {
+  display: none;
+}
+h2:has(input.hide-location-toggle:not(:checked)) ~ div.events-all {
+  display: block;
+}
+input.hide-location-toggle {
+  display: none;
+}
+
+label.hide-location {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  background-color: #99b1f9;
+  user-select: none;
+}
+.roze > section > h2 label.hide-location {
+  background-color: #f200e8 !important;
+}
+label.hide-location::after {
+  content: '\2716'; /* -- */
+  content: '\25bd'; /* -- */
+  content: '\23fc'; /* -- */
+  content: '   \2212'; /* -- */
+}
+input.hide-location-toggle:checked ~ label.hide-location::after {
+  content: '\271a'; /* + */
+  content: '\25c1'; /* + */
+  content: '\002b'; /* + */
+}
+/* End location description */
+
 /* Magic CSS to hide/show based on target click
 .show, .hide:target, dd.description {
   display: none;

@@ -69,6 +69,7 @@ var htmlTemplate = `<!DOCTYPE html>
   </head>
   <body>
     <a name="top"></a>
+    {{ if not .IsProduction }} {{ .TestingBanner }} {{ end }}
     <div id="main" class="container">
       {{- $schedule := .Schedule -}}
       {{ range $index, $day := $schedule.Days }}
@@ -77,7 +78,8 @@ var htmlTemplate = `<!DOCTYPE html>
       <section class="{{ if isRoze $day.Date -}} roze {{ end }}day" id="day-{{ $currentDayNumber }}"><h1 class="sticky-0"><a href="#day-{{ $currentDayNumber }}">Dag {{ $currentDayNumber }}, {{ if isRoze $day.Date -}} Roze {{ end }}<time {{ formatRFC3339DatetimeAttr $day.Date }}>{{ $day.Title }}</time></a></h1>
       {{ range $location := $schedule.Locations }}
         {{ with index $location.TotalNrProgramsByDay $currentDayId | ne 0 }}
-        <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}"><h2 class="sticky-1"><a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
+        <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}"><h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $location.Id }}" /> <label for="hide-location-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a> </h2>
+          <div class="events-all">
         {{ range $dayId, $progs := $location.ProgramsByDay }}
           {{ if ne $dayId $currentDayId }} {{ continue }} {{ else }}
             {{ range $prog := $progs }}
@@ -88,7 +90,7 @@ var htmlTemplate = `<!DOCTYPE html>
                 {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
                 <dd class="summary">{{ $prog.Summary }}</dd>
                 {{ else }}
-                <input type="checkbox" class="meer-toggle" id="meer-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="meer-{{ $prog.Id }}" class="hide"></label></dd>
+                <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
                 <dd class="description">{{ $prog.Details }} </dd>
                 {{ end }}
                 </div>
@@ -108,7 +110,7 @@ var htmlTemplate = `<!DOCTYPE html>
                     {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
                     <dd class="summary">{{ $prog.Summary }}</dd>
                     {{ else }}
-                    <input type="checkbox" class="meer-toggle" id="meer-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="meer-{{ $prog.Id }}" class="hide"></label></dd>
+                    <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
                     <dd class="description">{{ $prog.Details }} </dd>
                     {{ end }}
                     </div>
@@ -119,6 +121,7 @@ var htmlTemplate = `<!DOCTYPE html>
             {{ end }}
           {{ end }}
         {{ end }}
+          </div>
         </section>
         {{ end }}
       {{ end }}

@@ -295,9 +295,13 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	templateData := struct {
 		StylesheetChecksumShort string
 		Schedule                *Schedule
+		TestingBanner           template.HTML
+		IsProduction            bool
 	}{
 		StylesheetChecksumShort: stylesheetCheckumShort,
 		Schedule:                schedule,
+		TestingBanner:           template.HTML(testingBanner),
+		IsProduction:            *prod,
 	}
 
 	err = tpl.Execute(buf, templateData)
