@@ -82,18 +82,36 @@ var htmlTemplate = `<!DOCTYPE html>
           {{ if ne $dayId $currentDayId }} {{ continue }} {{ else }}
             {{ range $prog := $progs }}
               {{ if ne $prog.LocationId $location.Id }} {{ continue }} {{ else }}
-                <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4><dd class="summary">{{ $prog.Summary }}</dd></div>
+                {{/* These are programs on the "main" location */}}
+                <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+                {{ $progDetailsEmpty := len $prog.Details | eq 0 }}
+                {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
+                <dd class="summary">{{ $prog.Summary }}</dd>
+                {{ else }}
+                <input type="checkbox" class="meer-toggle" id="meer-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="meer-{{ $prog.Id }}" class="hide"></label></dd>
+                <dd class="description">{{ $prog.Details }} </dd>
+                {{ end }}
+                </div>
               {{ end }}
             {{ end }}
           {{ end }}
-          {{ range $child := $location.Children }}
-            {{ with index $child.TotalNrProgramsByDay $currentDayId | ne 0 }}
-            <h3 class="sticky-2" id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}-{{ $child.Slug }}">{{ $child.Title }}</h3>
-            {{ range $dayId, $progs := $child.ProgramsByDay }}
+          {{ range $childLocation := $location.Children }}
+            {{ with index $childLocation.TotalNrProgramsByDay $currentDayId | ne 0 }}
+            <h3 class="sticky-2" id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}-{{ $childLocation.Slug }}">{{ $childLocation.Title }}</h3>
+            {{ range $dayId, $progs := $childLocation.ProgramsByDay }}
               {{ if ne $dayId $currentDayId }} {{ continue }} {{ else }}
                 {{ range $prog := $progs }}
-                  {{ if ne $prog.LocationId $child.Id }} {{ continue }} {{ else }}
-                    <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4><dd class="summary">{{ $prog.Summary }}</dd></div>
+                  {{ if ne $prog.LocationId $childLocation.Id }} {{ continue }} {{ else }}
+                    {{/* These are programs on a child location of the main location, such as separate stages or rooms */}}
+                    <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+                    {{ $progDetailsEmpty := len $prog.Details | eq 0 }}
+                    {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
+                    <dd class="summary">{{ $prog.Summary }}</dd>
+                    {{ else }}
+                    <input type="checkbox" class="meer-toggle" id="meer-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="meer-{{ $prog.Id }}" class="hide"></label></dd>
+                    <dd class="description">{{ $prog.Details }} </dd>
+                    {{ end }}
+                    </div>
                   {{ end }}
                 {{ end }}
               {{ end }}
