@@ -217,6 +217,9 @@ input.hide-description-toggle:checked ~ dd.summary label.hide-description::after
 /* End toggle description */
 
 /* Toggle location; default state is unchecked, and we called it 'hide-location', so only hide the location when it's checked  */
+section:has(h2 > input.hide-location-toggle:checked) {
+  margin-bottom: 0;
+}
 h2:has(input.hide-location-toggle:checked) ~ div.events-all {
   display: none;
 }
