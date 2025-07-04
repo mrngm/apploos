@@ -1,19 +1,15 @@
 package main
 
-var testingBanner = `
-<div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>
-`
+var testingBanner = `<div id="testing-banner">TESTOMGEVING, <a href="https://apploos.nl/4df/">klik hier</a> om naar de live website te gaan.</div>`
 
-var navigation = `
-<div id="nav">
-  <ul class="navigation">
-    <li class="nav-left"><button onclick="left()">D-</button></li>
-    <li class="nav-up"><button onclick="up()">L-</button></li>
-    <li class="nav-down"><button onclick="down()">L+</button></li>
-    <li class="nav-right"><button onclick="right()">D+</button></li>
-  </ul>
-</div>
-`
+var navigation = `<div id="nav">
+      <ul class="navigation">
+        <li class="nav-left"><button onclick="left()">D-</button></li>
+        <li class="nav-up"><button onclick="up()">L-</button></li>
+        <li class="nav-down"><button onclick="down()">L+</button></li>
+        <li class="nav-right"><button onclick="right()">D+</button></li>
+      </ul>
+    </div>`
 
 var htmlTemplate = `<!DOCTYPE html>
 <html lang="nl">
@@ -76,65 +72,72 @@ var htmlTemplate = `<!DOCTYPE html>
   </head>
   <body>
     <a name="top"></a>
-    {{ if not .IsProduction }} {{ .TestingBanner }} {{ end }}
-    {{ if not .IsProduction }} {{ .Navigation }} {{ end }}
+    {{ if not .IsProduction }} {{- .TestingBanner -}} {{ end }}
+    {{ if not .IsProduction }} {{- .Navigation -}} {{ end }}
     <div id="main" class="container">
-      {{- $schedule := .Schedule -}}
-      {{ range $index, $day := $schedule.Days }}
+    {{- $schedule := .Schedule -}}
+    {{- range $index, $day := $schedule.Days -}}
       {{- $currentDayNumber := add $index 1 -}}
-      {{- $currentDayId := $day.Id -}}
-      <section class="{{ if isRoze $day.Date -}} roze {{ end }}day" id="day-{{ $currentDayNumber }}"><h1 class="sticky-0"><a href="#day-{{ $currentDayNumber }}">Dag {{ $currentDayNumber }}, {{ if isRoze $day.Date -}} Roze {{ end }}<time {{ formatRFC3339DatetimeAttr $day.Date }}>{{ $day.Title }}</time></a></h1>
-      {{ range $location := $schedule.Locations }}
-        {{ with index $location.TotalNrProgramsByDay $currentDayId | ne 0 }}
-        <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}"><h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $location.Id }}" /> <label for="hide-location-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a> </h2>
+      {{- $currentDayId := $day.Id }}
+      <section class="{{ if isRoze $day.Date -}} roze {{ end }}day" id="day-{{ $currentDayNumber }}">
+        <h1 class="sticky-0"><a href="#day-{{ $currentDayNumber }}">Dag {{ $currentDayNumber }}, {{ if isRoze $day.Date -}} Roze {{ end }}<time {{ formatRFC3339DatetimeAttr $day.Date }}>{{ $day.Title }}</time></a></h1>
+      {{- range $location := $schedule.Locations -}}
+        {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
+        {{- if ne $nrProgsToday 0 }}
+        <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">
+          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $location.Id }}" /> <label for="hide-location-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
           <div class="events-all">
-        {{ range $dayId, $progs := $location.ProgramsByDay }}
-          {{ if ne $dayId $currentDayId }} {{ continue }} {{ else }}
-            {{ range $prog := $progs }}
-              {{ if ne $prog.LocationId $location.Id }} {{ continue }} {{ else }}
+        {{- range $dayId, $progs := $location.ProgramsByDay -}}
+          {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else -}}
+            {{- range $prog := $progs -}}
+              {{- if ne $prog.LocationId $location.Id -}} {{- continue -}} {{- else -}}
                 {{/* These are programs on the "main" location */}}
-                <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
-                {{ $progDetailsEmpty := len $prog.Details | eq 0 }}
-                {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
-                <dd class="summary">{{ $prog.Summary }}</dd>
-                {{ else }}
-                <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
-                <dd class="description">{{ $prog.Details }} </dd>
-                {{ end }}
-                </div>
-              {{ end }}
-            {{ end }}
-          {{ end }}
-          {{ range $childLocation := $location.Children }}
-            {{ with index $childLocation.TotalNrProgramsByDay $currentDayId | ne 0 }}
+            <div class="event">
+              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+                {{- $progDetailsEmpty := len $prog.Details | eq 0 -}}
+                {{- if eq $prog.Title $prog.Details | or $progDetailsEmpty -}}
+              <dd class="summary">{{ $prog.Summary }}</dd>
+                {{- else -}}
+              <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" />
+              <dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
+              <dd class="description">{{ $prog.Details }} </dd>
+                {{- end }}
+            </div>
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+          {{- range $childLocation := $location.Children -}}
+            {{- $nrProgsToday := index $childLocation.TotalNrProgramsByDay $currentDayId -}}
+            {{- if ne $nrProgsToday 0 }}
             <h3 class="sticky-2" id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}-{{ $childLocation.Slug }}">{{ $childLocation.Title }}</h3>
-            {{ range $dayId, $progs := $childLocation.ProgramsByDay }}
-              {{ if ne $dayId $currentDayId }} {{ continue }} {{ else }}
-                {{ range $prog := $progs }}
-                  {{ if ne $prog.LocationId $childLocation.Id }} {{ continue }} {{ else }}
-                    {{/* These are programs on a child location of the main location, such as separate stages or rooms */}}
-                    <div class="event"><h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
-                    {{ $progDetailsEmpty := len $prog.Details | eq 0 }}
-                    {{ if eq $prog.Title $prog.Details | or $progDetailsEmpty }}
-                    <dd class="summary">{{ $prog.Summary }}</dd>
-                    {{ else }}
-                    <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
-                    <dd class="description">{{ $prog.Details }} </dd>
-                    {{ end }}
-                    </div>
-                  {{ end }}
-                {{ end }}
-              {{ end }}
-            {{ end }}
-            {{ end }}
-          {{ end }}
-        {{ end }}
+            {{- range $dayId, $progs := $childLocation.ProgramsByDay -}}
+              {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else }}
+              {{- range $prog := $progs -}}
+                {{- if ne $prog.LocationId $childLocation.Id -}} {{- continue -}} {{- else -}}
+                  {{/* These are programs on a child location of the main location, such as separate stages or rooms */}}
+            <div class="event">
+              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+                  {{- $progDetailsEmpty := len $prog.Details | eq 0 -}}
+                  {{- if eq $prog.Title $prog.Details | or $progDetailsEmpty -}}
+              <dd class="summary">{{ $prog.Summary }}</dd>
+                  {{- else -}}
+              <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
+              <dd class="description">{{ $prog.Details }} </dd>
+                  {{- end }}
+            </div>
+                {{- end -}}
+              {{- end -}}
+            {{- end -}}
+            {{- end -}}
+          {{- end -}}
+          {{- end -}}
+        {{- end }}
           </div>
         </section>
-        {{ end }}
-      {{ end }}
+        {{- end -}}
+      {{- end }}
       </section>
-      {{ end }}
+      {{- end -}}
     </div>
     <script type="text/javascript">
     // From https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
