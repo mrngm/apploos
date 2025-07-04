@@ -151,7 +151,6 @@ a.location-title {
 }
 
 section > section {
-  margin-bottom: 2ex;
   scroll-margin-top: 1.5em;
 }
 
@@ -160,9 +159,19 @@ section > section {
 }
 
 .event {
-  padding: 0.75ex 0.75ex 1ex 0.5ex;
+  padding: 0.25ex 0.75ex 0.25ex 0.5ex;
   font-size: 14pt;
-  margin: 0.25em 0 0.25em 0;
+  margin: 0.125em 0 0.125em 0;
+}
+.event:first-child {
+  margin-top: 0.25em;
+}
+.event:last-child {
+  margin-bottom: 0.5em;
+}
+.event:only-child {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 /* event after h3, subsequent-sibling combinator */
