@@ -68,6 +68,36 @@ var htmlTemplate = `<!DOCTYPE html>
                 nextSection.scrollIntoView();
             }
         }
+        function left() {
+            let firstElement = null;
+            const days = document.querySelectorAll(".day")
+            for(const el of days) {
+                if(!isInViewport(el)) {
+                    continue;
+                }
+                firstElement = el;
+                break;
+            }
+            let previousSection = firstElement.previousElementSibling;
+            if(previousSection != null) {
+                previousSection.scrollIntoView();
+            }
+        }
+        function right() {
+            let firstElement = null;
+            const days = document.querySelectorAll(".day")
+            for(const el of days) {
+                if(!isInViewport(el)) {
+                    continue;
+                }
+                firstElement = el;
+                break;
+            }
+            let nextSection = firstElement.nextElementSibling;
+            if(nextSection != null) {
+                nextSection.scrollIntoView();
+            }
+        }
     </script>
   </head>
   <body>
