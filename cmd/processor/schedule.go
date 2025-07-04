@@ -296,11 +296,13 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 		StylesheetChecksumShort string
 		Schedule                *Schedule
 		TestingBanner           template.HTML
+		Navigation              template.HTML
 		IsProduction            bool
 	}{
 		StylesheetChecksumShort: stylesheetCheckumShort,
 		Schedule:                schedule,
 		TestingBanner:           template.HTML(testingBanner),
+		Navigation:              template.HTML(navigation),
 		IsProduction:            *prod,
 	}
 

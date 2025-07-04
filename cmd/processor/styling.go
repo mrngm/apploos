@@ -297,7 +297,7 @@ div#nav {
   width: 100vw;
   font-size: 16pt;
   height: 1.5em;
-  background-color: red;
+  background-color: white;
 }
 
 ul.navigation {
@@ -306,18 +306,30 @@ ul.navigation {
   list-style-type: none;
 }
 ul.navigation li {
-  flex: 0 0 25%;
+  flex: 1 1 20vw;
   text-align: center;
+  margin-top: .2ex;
+  margin-left: .2ex;
+  margin-right: .2ex;
+}
+ul.navigation li:first-child {
+  margin-left: 0px !important;
+}
+ul.navigation li:last-child {
+  margin-right: 0px !important;
 }
 li button {
   font-size: 14pt;
   background-color: #4169e1;
-  border: .2ex solid white;
   text-align: center;
   text-decoration: none;
   height: 100%;
   width: 100%;
-  padding: .5ex;
+  padding: .1ex;
+  border-top: 2px solid #6a89ea;
+  border-right: 2px solid #38497e;
+  border-bottom: 2px solid #38497e;
+  border-left: 2px solid #6a89ea;
 }
 
 li button:active {

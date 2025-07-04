@@ -5,7 +5,14 @@ var testingBanner = `
 `
 
 var navigation = `
-<div id="nav"><ul class="navigation"><li class="nav-left"><button onclick="left()">&lt;&lt;</button></li><li class="nav-right"><button onclick="right()">&gt;&gt;</button></li><li class="nav-up"><button onclick="up()">Loc ^</button></li><li class="nav-down"><button onclick="down()">Loc v</button></li></ul></div>
+<div id="nav">
+  <ul class="navigation">
+    <li class="nav-left"><button onclick="left()">D-</button></li>
+    <li class="nav-up"><button onclick="up()">L-</button></li>
+    <li class="nav-down"><button onclick="down()">L+</button></li>
+    <li class="nav-right"><button onclick="right()">D+</button></li>
+  </ul>
+</div>
 `
 
 var htmlTemplate = `<!DOCTYPE html>
@@ -70,6 +77,7 @@ var htmlTemplate = `<!DOCTYPE html>
   <body>
     <a name="top"></a>
     {{ if not .IsProduction }} {{ .TestingBanner }} {{ end }}
+    {{ if not .IsProduction }} {{ .Navigation }} {{ end }}
     <div id="main" class="container">
       {{- $schedule := .Schedule -}}
       {{ range $index, $day := $schedule.Days }}
