@@ -17,6 +17,7 @@ const (
 	LocationOnderbroekId
 	LocationOpstandId
 	LocationDeVereenigingId
+	LocationDeWitteRaafId
 )
 
 var LocationTitlesToIds = map[string]CustomLocationId{
@@ -25,6 +26,7 @@ var LocationTitlesToIds = map[string]CustomLocationId{
 	"De Onderbroek":      LocationOnderbroekId,
 	"Café De Opstand":    LocationOpstandId,
 	"De Vereeniging":     LocationDeVereenigingId,
+	"De Witte Raaf":      LocationDeWitteRaafId,
 }
 
 var UnknownLocationId CustomLocationId = -127

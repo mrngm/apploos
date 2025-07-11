@@ -102,6 +102,7 @@ var htmlTemplate = `<!DOCTYPE html>
   </head>
   <body>
     <a name="top"></a>
+    {{- $isProd := .IsProduction -}}
     {{ if not .IsProduction }} {{- .TestingBanner -}} {{ end }}
     {{ if not .IsProduction }} {{- .Navigation -}} {{ end }}
     <div id="main" class="container">
@@ -115,7 +116,7 @@ var htmlTemplate = `<!DOCTYPE html>
         {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
         {{- if ne $nrProgsToday 0 }}
         <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">
-          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $location.Id }}" /> <label for="hide-location-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
+          <h2 class="sticky-1">{{- if not $isProd -}}<input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $location.Id }}" /> <label for="hide-location-{{ $location.Id }}" class="hide-location"></label>{{- end -}} <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
           <div class="events-all">
         {{- range $dayId, $progs := $location.ProgramsByDay -}}
           {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else -}}
