@@ -88,6 +88,7 @@ func createProgramFromEventProgram(schedule *VierdaagseOverview, location Vierda
 			Date: theDay.Date,
 		},
 		Location:           SingularId{Id: location.IdWithTitle.Id},
+		Slug:               prog.Slug,
 		Description:        prog.Details,
 		DescriptionShort:   prog.Summary,
 		FullStartTime:      prog.FullStartTime,
