@@ -123,7 +123,7 @@ var htmlTemplate = `<!DOCTYPE html>
               {{- if ne $prog.LocationId $location.Id -}} {{- continue -}} {{- else -}}
                 {{/* These are programs on the "main" location */}}
             <div class="event">
-              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}{{- if decimalGtZero $prog.TicketPrice }} ({{- if len $prog.TicketLink | ne 0 -}}<a href="{{- $prog.TicketLink -}}" target="_blank">€</a>{{- else -}}€{{- end -}}) {{- if $prog.TicketsSoldOut }} (uitverkocht) {{- end -}}{{- end -}}</h4>
                 {{- $progDetailsEmpty := len $prog.Details | eq 0 -}}
                 {{- if eq $prog.Title $prog.Details | or $progDetailsEmpty -}}
               <dd class="summary">{{ $prog.Summary }}</dd>
@@ -147,7 +147,7 @@ var htmlTemplate = `<!DOCTYPE html>
                 {{- if ne $prog.LocationId $childLocation.Id -}} {{- continue -}} {{- else -}}
                   {{/* These are programs on a child location of the main location, such as separate stages or rooms */}}
             <div class="event">
-              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}</h4>
+              <h4 id="{{ $prog.Slug }}"><time {{ formatRFC3339DatetimeAttr $prog.FullStartTime }}>{{ formatHourMins $prog.FullStartTime }}{{- if $prog.StartTimeEstimated -}}?{{- end -}}</time> - <time {{ formatRFC3339DatetimeAttr $prog.FullEndTime }}>{{ formatHourMins $prog.FullEndTime }}{{- if $prog.EndTimeEstimated -}}?{{- end -}}</time> {{ $prog.Title }}{{- if decimalGtZero $prog.TicketPrice }} ({{- if len $prog.TicketLink | ne 0 -}}<a href="{{- $prog.TicketLink -}}" target="_blank">€</a>{{- else -}}€{{- end -}}) {{- if $prog.TicketsSoldOut }} (uitverkocht) {{- end -}}{{- end -}}</h4>
                   {{- $progDetailsEmpty := len $prog.Details | eq 0 -}}
                   {{- if eq $prog.Title $prog.Details | or $progDetailsEmpty -}}
               <dd class="summary">{{ $prog.Summary }}</dd>

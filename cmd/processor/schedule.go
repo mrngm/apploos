@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 func SetupDays(everything VierdaagseOverview) []*Day {
@@ -104,13 +106,17 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 	programs := make(map[int]*Program)
 	for _, prog := range everything.Programs {
 		prog := prog
+		tpf := decimal.NewFromFloatWithExponent(prog.TicketsPrice, -2)
 		program := &Program{
-			Id:         prog.IdWithTitle.Id,
-			LocationId: prog.Location.Id,
-			Title:      prog.IdWithTitle.Title,
-			Slug:       formatProgramSlug(prog),
-			Summary:    cleanupHTML(prog.DescriptionShort),
-			Details:    cleanupHTML(prog.Description),
+			Id:             prog.IdWithTitle.Id,
+			LocationId:     prog.Location.Id,
+			Title:          prog.IdWithTitle.Title,
+			Slug:           formatProgramSlug(prog),
+			Summary:        cleanupHTML(prog.DescriptionShort),
+			Details:        cleanupHTML(prog.Description),
+			TicketPrice:    tpf,
+			TicketLink:     prog.TicketsLink,
+			TicketsSoldOut: prog.TicketsSoldOut,
 		}
 
 		// Record some data quality issues, try to fix some
@@ -193,6 +199,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			}
 		} else {
 			program.FullStartTime = prog.FullStartTime
+			program.StartTimeEstimated = prog.StartTimeEstimated
 		}
 		if prog.FullEndTime.IsZero() {
 			// No full end time defined yet, let's try to derive it
@@ -205,6 +212,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			}
 		} else {
 			program.FullEndTime = prog.FullEndTime
+			program.EndTimeEstimated = prog.EndTimeEstimated
 		}
 		if !prog.RolloverImplied && program.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
 			program.FullStartTime = program.FullStartTime.AddDate(0, 0, 1)
@@ -297,6 +305,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			return template.HTMLAttr(`datetime="` + t.Format(time.RFC3339) + `"`)
 		},
 		"formatHourMins": func(t time.Time) string { return t.Format("15:04") },
+		"decimalGtZero":  func(d decimal.Decimal) bool { return d.GreaterThan(decimal.Decimal{}) },
 	}
 
 	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))

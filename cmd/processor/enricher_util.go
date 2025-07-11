@@ -73,6 +73,11 @@ func createProgramFromEventProgram(schedule *VierdaagseOverview, location Vierda
 		return VierdaagseProgram{}
 	}
 
+	tpf, exact := prog.TicketPrice.Float64()
+	if !exact {
+		slog.Warn("creating float64 from decimal, lost precision", "decimal", prog.TicketPrice, "float64", tpf)
+	}
+
 	return VierdaagseProgram{
 		IdWithTitle: IdWithTitle{
 			Id:    GetCustomProgramId(),
@@ -82,11 +87,17 @@ func createProgramFromEventProgram(schedule *VierdaagseOverview, location Vierda
 			Id:   theDay.IdWithTitle.Id,
 			Date: theDay.Date,
 		},
-		Location:        SingularId{Id: location.IdWithTitle.Id},
-		Description:     prog.Details,
-		FullStartTime:   prog.FullStartTime,
-		FullEndTime:     prog.FullEndTime,
-		RolloverImplied: prog.RolloverImplied,
+		Location:           SingularId{Id: location.IdWithTitle.Id},
+		Description:        prog.Details,
+		DescriptionShort:   prog.Summary,
+		FullStartTime:      prog.FullStartTime,
+		StartTimeEstimated: prog.StartTimeEstimated,
+		FullEndTime:        prog.FullEndTime,
+		EndTimeEstimated:   prog.EndTimeEstimated,
+		RolloverImplied:    prog.RolloverImplied,
+		TicketsPrice:       tpf,
+		TicketsLink:        prog.TicketLink,
+		TicketsSoldOut:     prog.TicketsSoldOut,
 	}
 }
 
