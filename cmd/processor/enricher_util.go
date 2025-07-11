@@ -66,4 +66,28 @@ func createEventTime(day, startHour, startMinute int) time.Time {
 	return time.Date(year, time.Month(month), theDay, startHour, startMinute, 0, 0, CEST)
 }
 
+func createProgramFromEventProgram(schedule *VierdaagseOverview, location VierdaagseLocation, prog *Program) VierdaagseProgram {
+	theDay, err := extractDayWithIdFromEvent(schedule, prog.FullStartTime, prog.FullEndTime)
+	if err != nil {
+		slog.Error("could not match date with event, skipping", "event", prog.Title, "startTime", prog.FullStartTime, "endTime", prog.FullEndTime)
+		return VierdaagseProgram{}
+	}
+
+	return VierdaagseProgram{
+		IdWithTitle: IdWithTitle{
+			Id:    GetCustomProgramId(),
+			Title: prog.Title,
+		},
+		Day: DayWithId{
+			Id:   theDay.IdWithTitle.Id,
+			Date: theDay.Date,
+		},
+		Location:        SingularId{Id: location.IdWithTitle.Id},
+		Description:     prog.Details,
+		FullStartTime:   prog.FullStartTime,
+		FullEndTime:     prog.FullEndTime,
+		RolloverImplied: prog.RolloverImplied,
+	}
+}
+
 // vim: cc=120:

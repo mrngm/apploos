@@ -19,6 +19,7 @@ import (
 var (
 	jsonFile   = flag.String("json", "", "Specifies the filename to read in Vierdaagse JSON format")
 	icalFile   = flag.String("ical", "", "Specifies the filename to read in Thiemeloods iCal XML format")
+	eventDir   = flag.String("eventDir", "", "Specifies the directory to import events from (JSON)")
 	prod       = flag.Bool("prod", false, "When given, don't show the TESTING banner")
 	storage    = flag.String("storage", "", "Scan this directory for collecting Vierdaagse JSON files")
 	pattern    = flag.String("pattern", "*.blob", "Only consider these files to be actual data files, see path.Match")
@@ -75,6 +76,71 @@ func readICalFile(fn string) (ICalendar, error) {
 		}
 	}
 	return calendar, nil
+}
+
+func readEventFile(fn string) (EventData, error) {
+	data := EventData{}
+	eventContents, err := os.ReadFile(fn)
+	if err != nil {
+		slog.Error("cannot read event JSON file", "err", err, "fn", fn)
+		return data, err
+	}
+
+	err = json.Unmarshal(eventContents, &data)
+	if err != nil {
+		slog.Error("cannot unmarshal JSON", "err", err)
+		return data, err
+	}
+	return data, nil
+}
+
+func readEventDir() ([]EventData, error) {
+	eventData := make([]EventData, 0)
+	if *eventDir == "" {
+		return eventData, nil
+	}
+
+	_, err := os.Stat(*eventDir)
+	if err != nil {
+		slog.Error("could not stat event dir", "err", err, "dir", *eventDir)
+		return eventData, err
+	}
+	entries, err := os.ReadDir(*eventDir)
+	if err != nil {
+		slog.Error("could not read event dir", "err", err, "dir", *eventDir)
+		return eventData, err
+	}
+	patternMatched := make([]os.DirEntry, 0)
+	pattern := "*.json"
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		matched, err := path.Match(pattern, entry.Name())
+		if err != nil {
+			slog.Error("matching failed", "err", err, "pattern", pattern, "entry", entry.Name())
+			continue
+		}
+		if !matched {
+			continue
+		}
+		patternMatched = append(patternMatched, entry)
+	}
+	if len(patternMatched) == 0 {
+		slog.Info("no matches found", "dir", *eventDir, "pattern", pattern)
+		return eventData, fmt.Errorf("no matches")
+	}
+
+	for _, eventFile := range patternMatched {
+		fn := filepath.Join(*eventDir, eventFile.Name())
+		data, err := readEventFile(fn)
+		if err != nil {
+			slog.Warn("could not read event file, skipping", "err", err, "dir", *eventDir, "fn", fn)
+			continue
+		}
+		eventData = append(eventData, data)
+	}
+	return eventData, nil
 }
 
 func readStorageDir() (dirModTime time.Time, fileModTime time.Time, recentFile string, err error) {
@@ -166,6 +232,19 @@ func main() {
 		try.DirModTime = dirModTime
 		try.FileModTime = fileModTime
 		everything = try
+	}
+
+	if *eventDir != "" {
+		events, err := readEventDir()
+		if err == nil {
+			for _, event := range events {
+				if err := EnrichGenericEvent(&everything, event); err != nil {
+					slog.Error("could not enrich schedule with event", "event", event, "err", err)
+				}
+			}
+		} else {
+			slog.Error("could not read eventDir", "eventDir", *eventDir, "err", err)
+		}
 	}
 
 	/*

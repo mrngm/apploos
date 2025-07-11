@@ -180,23 +180,31 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			theDayDate = prog.Day.Date
 		}
 		program.DayId = dayId
-		if prog.StartTime == "" {
-			// Try to derive the start time from SortDate
-			if strings.HasPrefix(prog.SortDate, "2025071") && len(prog.SortDate) == 12 {
-				program.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
-				program.StartTimeEstimated = true
+		if prog.FullStartTime.IsZero() {
+			// No full start time defined yet, let's try to derive it
+			if prog.StartTime == "" {
+				// Try to derive the start time from SortDate
+				if strings.HasPrefix(prog.SortDate, "2025071") && len(prog.SortDate) == 12 {
+					program.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
+					program.StartTimeEstimated = true
+				}
+			} else {
+				program.FullStartTime = appendEventTime(theDayDate, prog.StartTime)
 			}
+		} else {
+			program.FullStartTime = prog.FullStartTime
 		}
-		if prog.EndTime == "" {
-			// Guesstimate that the program takes 30m
-			program.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
-			program.EndTimeEstimated = true
-		}
-		if program.FullStartTime.IsZero() && prog.StartTime != "" {
-			program.FullStartTime = appendEventTime(theDayDate, prog.StartTime)
-		}
-		if program.FullEndTime.IsZero() && prog.EndTime != "" {
-			program.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
+		if prog.FullEndTime.IsZero() {
+			// No full end time defined yet, let's try to derive it
+			if prog.EndTime == "" {
+				// Guesstimate that the program takes 30m
+				program.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
+				program.EndTimeEstimated = true
+			} else {
+				program.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
+			}
+		} else {
+			program.FullEndTime = prog.FullEndTime
 		}
 		if !prog.RolloverImplied && program.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
 			program.FullStartTime = program.FullStartTime.AddDate(0, 0, 1)
