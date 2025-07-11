@@ -142,6 +142,9 @@ a.location-title {
   scroll-snap-stop: always;
   max-width: 95vw;
 }
+#main > section:first-child {
+  margin-left: 0em;
+}
 #main > section:last-child {
   margin-right: 0em;
 }
