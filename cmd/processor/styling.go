@@ -203,6 +203,7 @@ h3 ~ dt {
   text-align: justify;
   line-height: 1.5;
   hyphens: auto;
+  white-space: pre-wrap;
 }
 
 dd.description {

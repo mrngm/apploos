@@ -14,7 +14,7 @@ func cleanupHTML(in string) string {
 	in = HTMLFilterAnchorRegexp.ReplaceAllString(in, "")
 	in = HTMLFilterUnicodeEntitiesRegexp.ReplaceAllString(in, "")
 	removals := []string{
-		`<p>`, `</p>`,
+		`<p>`,
 		`<a>`, `</a>`,
 		`<i>`, `</i>`,
 		`<em>`, `</em>`,
@@ -23,9 +23,9 @@ func cleanupHTML(in string) string {
 	for _, remove := range removals {
 		in = strings.ReplaceAll(in, remove, "")
 	}
-	replaceWithSpaces := []string{`<br>`, `<br/>`, `<br />`}
-	for _, replace := range replaceWithSpaces {
-		in = strings.ReplaceAll(in, replace, " ")
+	replaceWithNewlines := []string{`<br>`, `<br/>`, `<br />`, `</p>`}
+	for _, replace := range replaceWithNewlines {
+		in = strings.ReplaceAll(in, replace, "\n")
 	}
 	// Misc fixes, html/template takes care of escaping
 	in = strings.ReplaceAll(in, "&amp;", "&")

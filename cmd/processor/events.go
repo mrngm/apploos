@@ -59,8 +59,9 @@ type Program struct {
 // XXX: Program uses DayId and LocationId internally; it's not reasonable to think that external events use the same identifiers.
 // Keep those fields out of the feed if processor needs to fill them in automatically
 type EventData struct {
-	LocationId    int // see enricher.go
-	LocationTitle string
-	LocationSlug  string
-	Programs      []*Program
+	LocationId       int // see enricher.go
+	LocationTitle    string
+	LocationSlug     string
+	LocationOverride bool
+	Programs         []*Program
 }

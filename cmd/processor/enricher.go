@@ -21,12 +21,13 @@ const (
 )
 
 var LocationTitlesToIds = map[string]CustomLocationId{
-	"Thiemeloods":        LocationThiemeLoodsId,
-	"Dollars Muziekcafé": LocationDollarsId,
-	"De Onderbroek":      LocationOnderbroekId,
-	"Café De Opstand":    LocationOpstandId,
-	"De Vereeniging":     LocationDeVereenigingId,
-	"De Witte Raaf":      LocationDeWitteRaafId,
+	"Thiemeloods":              LocationThiemeLoodsId,
+	"Dollars Muziekcafé":       LocationDollarsId,
+	"De Onderbroek":            LocationOnderbroekId,
+	"Café De Opstand":          LocationOpstandId,
+	"De Vereeniging":           LocationDeVereenigingId,
+	"De Witte Raaf":            LocationDeWitteRaafId,
+	"Valkhof Festival - Poort": 65968, // For manually splitting acts on this location
 }
 
 var UnknownLocationId CustomLocationId = -127
@@ -41,7 +42,7 @@ func EnrichGenericEvent(schedule *VierdaagseOverview, event EventData) error {
 
 	// Add a location. We can do negative IDs that typically don't conflict with those from the Vierdaagse program
 	for _, loc := range schedule.Locations {
-		if loc.IdWithTitle.Id == int(lid) {
+		if !event.LocationOverride && loc.IdWithTitle.Id == int(lid) {
 			return fmt.Errorf("cannot enrich schedule due to conflichting Location ID: %d, %v", loc.IdWithTitle.Id, loc)
 		}
 	}
