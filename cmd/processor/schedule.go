@@ -306,6 +306,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 		},
 		"formatHourMins": func(t time.Time) string { return t.Format("15:04") },
 		"decimalGtZero":  func(d decimal.Decimal) bool { return d.GreaterThan(decimal.Decimal{}) },
+		"isVuurwerk":     func(s string) bool { return strings.Contains(strings.ToLower(s), "waal in vlammen") },
 	}
 
 	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))
