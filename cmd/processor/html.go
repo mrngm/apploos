@@ -18,6 +18,7 @@ var htmlTemplate = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width" />
     <title>Vierdaagsefeesten 2025</title>
     <link rel="stylesheet" type="text/css" href="style.css?{{ .StylesheetChecksumShort }}" />
+    <script src="scripts.js?{{ .ScriptingChecksumShort }}" defer=""></script>
     <script type="text/javascript">
         function scrollToAnchorOrDay() {
             if(location.hash != "") {
@@ -38,66 +39,6 @@ var htmlTemplate = `<!DOCTYPE html>
         }
         window.addEventListener("load", scrollToAnchorOrDay);
 
-        function up() {
-            let firstElement = null;
-            const locations = document.querySelectorAll(".location-title")
-            for(const el of locations) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let previousSection = firstElement.parentNode.parentNode.previousElementSibling;
-            if(previousSection != null) {
-                previousSection.scrollIntoView();
-            }
-        }
-        function down() {
-            let firstElement = null;
-            const locations = document.querySelectorAll(".location-title")
-            for(const el of locations) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let nextSection = firstElement.parentNode.parentNode.nextElementSibling;
-            if(nextSection != null) {
-                nextSection.scrollIntoView();
-            }
-        }
-        function left() {
-            let firstElement = null;
-            const days = document.querySelectorAll(".day")
-            for(const el of days) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let previousSection = firstElement.previousElementSibling;
-            if(previousSection != null) {
-                previousSection.scrollIntoView();
-            }
-        }
-        function right() {
-            let firstElement = null;
-            const days = document.querySelectorAll(".day")
-            for(const el of days) {
-                if(!isInViewport(el)) {
-                    continue;
-                }
-                firstElement = el;
-                break;
-            }
-            let nextSection = firstElement.nextElementSibling;
-            if(nextSection != null) {
-                nextSection.scrollIntoView();
-            }
-        }
     </script>
   </head>
   <body>
@@ -116,7 +57,7 @@ var htmlTemplate = `<!DOCTYPE html>
         {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
         {{- if ne $nrProgsToday 0 }}
         <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">
-          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" /> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
+          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle hide-location-id-{{ $location.Id }}" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="hideLocation(this)" /> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
           <div class="events-all">
         {{- range $dayId, $progs := $location.ProgramsByDay -}}
           {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else -}}

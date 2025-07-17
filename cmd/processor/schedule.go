@@ -312,12 +312,14 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))
 	templateData := struct {
 		StylesheetChecksumShort string
+		ScriptingChecksumShort  string
 		Schedule                *Schedule
 		TestingBanner           template.HTML
 		Navigation              template.HTML
 		IsProduction            bool
 	}{
 		StylesheetChecksumShort: stylesheetCheckumShort,
+		ScriptingChecksumShort:  scriptingChecksumShort,
 		Schedule:                schedule,
 		TestingBanner:           template.HTML(testingBanner),
 		Navigation:              template.HTML(navigation),

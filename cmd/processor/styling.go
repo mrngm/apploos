@@ -344,6 +344,9 @@ li button {
   border-bottom: 2px solid #38497e;
   border-left: 2px solid #6a89ea;
 }
+button {
+  touch-action: manipulation;
+}
 
 li button:active {
   background-color: #99b1f9;
