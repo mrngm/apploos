@@ -311,6 +311,7 @@ div#nav {
   font-size: 16pt;
   height: 1.5em;
   background-color: white;
+  margin-bottom: 0.1ex;
 }
 
 ul.navigation {
@@ -343,6 +344,7 @@ li button {
   border-right: 2px solid #38497e;
   border-bottom: 2px solid #38497e;
   border-left: 2px solid #6a89ea;
+  color: white;
 }
 button {
   touch-action: manipulation;

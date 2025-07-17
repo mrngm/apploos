@@ -4,10 +4,10 @@ var testingBanner = `<div id="testing-banner">TESTOMGEVING, <a href="https://app
 
 var navigation = `<div id="nav">
       <ul class="navigation">
-        <li class="nav-left"><button onclick="left()">D-</button></li>
-        <li class="nav-up"><button onclick="up()">L-</button></li>
-        <li class="nav-down"><button onclick="down()">L+</button></li>
-        <li class="nav-right"><button onclick="right()">D+</button></li>
+        <li class="nav-left"><button onclick="left()">&larr; dag</button></li>
+        <li class="nav-up"><button onclick="up()">&uarr;</button></li>
+        <li class="nav-down"><button onclick="down()">&darr;</button></li>
+        <li class="nav-right"><button onclick="right()">dag &rarr;</button></li>
       </ul>
     </div>`
 

@@ -21,13 +21,14 @@ const (
 )
 
 var LocationTitlesToIds = map[string]CustomLocationId{
-	"Thiemeloods":              LocationThiemeLoodsId,
-	"Dollars Muziekcafé":       LocationDollarsId,
-	"De Onderbroek":            LocationOnderbroekId,
-	"Café De Opstand":          LocationOpstandId,
-	"De Vereeniging":           LocationDeVereenigingId,
-	"De Witte Raaf":            LocationDeWitteRaafId,
-	"Valkhof Festival - Poort": 65968, // For manually splitting acts on this location
+	"Thiemeloods":                          LocationThiemeLoodsId,
+	"Dollars Muziekcafé":                   LocationDollarsId,
+	"De Onderbroek":                        LocationOnderbroekId,
+	"Café De Opstand":                      LocationOpstandId,
+	"De Vereeniging":                       LocationDeVereenigingId,
+	"De Witte Raaf":                        LocationDeWitteRaafId,
+	"Valkhof Festival - Poort":             65968, // For manually splitting acts on this location
+	"Valkhof Festival - St. Nicolaaskapel": 65966, // For manually splitting acts on this location
 }
 
 var UnknownLocationId CustomLocationId = -127
