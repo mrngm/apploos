@@ -45,7 +45,7 @@ var htmlTemplate = `<!DOCTYPE html>
     <a name="top"></a>
     {{- $isProd := .IsProduction -}}
     {{ if not .IsProduction }} {{- .TestingBanner -}} {{ end }}
-    {{ if not .IsProduction }} {{- .Navigation -}} {{ end }}
+    {{- .Navigation -}}
     <div id="main" class="container">
     {{- $schedule := .Schedule -}}
     {{- range $index, $day := $schedule.Days -}}

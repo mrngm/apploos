@@ -346,6 +346,7 @@ li button {
 }
 button {
   touch-action: manipulation;
+  user-select: none;
 }
 
 li button:active {
