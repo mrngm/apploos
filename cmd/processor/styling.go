@@ -154,7 +154,7 @@ a.location-title {
 }
 
 section > section {
-  scroll-margin-top: 1.5em;
+  scroll-margin-top: 1.75em;
 }
 
 .artist {
@@ -309,9 +309,7 @@ div#nav {
   z-index: 150;
   width: 100vw;
   font-size: 16pt;
-  height: 1.5em;
   background-color: white;
-  margin-bottom: 0.1ex;
 }
 
 ul.navigation {
