@@ -132,6 +132,7 @@ a.location-title {
   scroll-behavior: smooth;
   padding: 0 2.5vw;
   gap: 0.5em;
+  margin-bottom: 2.125em;
 }
 #main > section {
   height: 100vh;
