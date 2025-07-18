@@ -234,6 +234,9 @@ input.hide-description-toggle:checked ~ dd.summary label.hide-description::after
 section:has(h2 > input.hide-location-toggle:checked) {
   margin-bottom: 0;
 }
+section:last-child:has(h2 > input.hide-location-toggle:checked) {
+  margin-bottom: 0.5em;
+}
 h2:has(input.hide-location-toggle:checked) ~ div.events-all {
   display: none;
 }
