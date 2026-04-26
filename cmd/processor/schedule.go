@@ -159,27 +159,27 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 		theDayDate := time.Time{}
 		if prog.Day.IsZero() {
 			program.DataQualityIssues |= DQINoDaySet
-			if strings.HasPrefix(prog.SortDate, "20250712") {
-				dayId = 370538
-				theDayDate = time.Date(2025, 7, 12, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250713") {
-				dayId = 370546
-				theDayDate = time.Date(2025, 7, 13, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250714") {
-				dayId = 370547
-				theDayDate = time.Date(2025, 7, 14, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250715") {
-				dayId = 370548
-				theDayDate = time.Date(2025, 7, 15, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250716") {
-				dayId = 370549
-				theDayDate = time.Date(2025, 7, 16, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250717") {
-				dayId = 370550
-				theDayDate = time.Date(2025, 7, 17, 0, 0, 0, 0, CEST)
-			} else if strings.HasPrefix(prog.SortDate, "20250718") {
-				dayId = 370551
-				theDayDate = time.Date(2025, 7, 18, 0, 0, 0, 0, CEST)
+			if strings.HasPrefix(prog.SortDate, "20260718") {
+				dayId = 496721
+				theDayDate = time.Date(2026, 7, 18, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260719") {
+				dayId = 496722
+				theDayDate = time.Date(2026, 7, 19, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260720") {
+				dayId = 496723
+				theDayDate = time.Date(2026, 7, 20, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260721") {
+				dayId = 496724
+				theDayDate = time.Date(2026, 7, 21, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260722") {
+				dayId = 496725
+				theDayDate = time.Date(2026, 7, 22, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260723") {
+				dayId = 496726
+				theDayDate = time.Date(2026, 7, 23, 0, 0, 0, 0, CEST)
+			} else if strings.HasPrefix(prog.SortDate, "20260724") {
+				dayId = 496727
+				theDayDate = time.Date(2026, 7, 24, 0, 0, 0, 0, CEST)
 			}
 		} else {
 			dayId = prog.Day.Id
@@ -190,7 +190,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			// No full start time defined yet, let's try to derive it
 			if prog.StartTime == "" {
 				// Try to derive the start time from SortDate
-				if strings.HasPrefix(prog.SortDate, "2025071") && len(prog.SortDate) == 12 {
+				if strings.HasPrefix(prog.SortDate, "2026071") && len(prog.SortDate) == 12 {
 					program.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
 					program.StartTimeEstimated = true
 				}
@@ -541,7 +541,7 @@ func formatProgramSlug(program VierdaagseProgram) string {
 }
 
 var (
-	RozeWoensdagStart = time.Date(2025, 7, 16, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
+	RozeWoensdagStart = time.Date(2026, 7, 22, ROLLOVER_HOUR_FROM_START_OF_DAY, 0, 0, 0, time.FixedZone("CEST", 2*60*60))
 	RozeWoensdagEnd   = RozeWoensdagStart.AddDate(0, 0, 1).Add(-1 * time.Nanosecond)
 )
 

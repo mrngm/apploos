@@ -16,7 +16,7 @@ var htmlTemplate = `<!DOCTYPE html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>Vierdaagsefeesten 2025</title>
+    <title>Vierdaagsefeesten 2026</title>
     <link rel="stylesheet" type="text/css" href="style.css?{{ .StylesheetChecksumShort }}" />
     <script src="scripts.js?{{ .ScriptingChecksumShort }}" defer=""></script>
     <script type="text/javascript">
@@ -28,7 +28,7 @@ var htmlTemplate = `<!DOCTYPE html>
                 }
             } else {
                 let today = new Date();
-                    if(today.getFullYear() == 2025 && today.getMonth() + 1 == 7) {
+                    if(today.getFullYear() == 2026 && today.getMonth() + 1 == 7) {
                     let currentVierdaagseDay = today.getDate() - 11;
                     if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
                         let el = document.getElementById('day-' + currentVierdaagseDay);
