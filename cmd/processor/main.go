@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"encoding/xml"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -18,7 +17,6 @@ import (
 
 var (
 	jsonFile   = flag.String("json", "", "Specifies the filename to read in Vierdaagse JSON format")
-	icalFile   = flag.String("ical", "", "Specifies the filename to read in Thiemeloods iCal XML format")
 	eventDir   = flag.String("eventDir", "", "Specifies the directory to import events from (JSON)")
 	prod       = flag.Bool("prod", false, "When given, don't show the TESTING banner")
 	storage    = flag.String("storage", "", "Scan this directory for collecting Vierdaagse JSON files")
@@ -42,40 +40,6 @@ func readJsonFile(fn string) (VierdaagseOverview, error) {
 		return ret, err
 	}
 	return ret, nil
-}
-
-func readICalFile(fn string) (ICalendar, error) {
-	calendar := ICalendar{}
-	icalContents, err := os.ReadFile(fn)
-	if err != nil {
-		slog.Error("cannot read iCal XML file", "err", err, "fn", fn)
-		return calendar, err
-	}
-
-	err = xml.Unmarshal(icalContents, &calendar)
-	if err != nil {
-		slog.Error("cannot unmarshal XML", "err", err)
-		return calendar, err
-	}
-	for i, event := range calendar.Events {
-		if loc, err := time.LoadLocation(event.StartTimeTZ); err == nil {
-			if startTime, err := time.ParseInLocation("2006-01-02T15:04:05", event.StartTime, loc); err == nil {
-				calendar.Events[i].FullStartTime = startTime
-			} else {
-				//slog.Error("parsing starttime failed (ignoring event)", "err", err, "event", event)
-				continue
-			}
-		}
-		if loc, err := time.LoadLocation(event.EndTimeTZ); err == nil {
-			if EndTime, err := time.ParseInLocation("2006-01-02T15:04:05", event.EndTime, loc); err == nil {
-				calendar.Events[i].FullEndTime = EndTime
-			} else {
-				//slog.Error("parsing endtime failed, assuming endtime as startime + 1h", "err", err, "event", event)
-				calendar.Events[i].FullEndTime = calendar.Events[i].FullStartTime.Add(1 * time.Hour)
-			}
-		}
-	}
-	return calendar, nil
 }
 
 func readEventFile(fn string) (EventData, error) {
