@@ -66,11 +66,11 @@ func createEventTime(day, startHour, startMinute int) time.Time {
 	return time.Date(year, time.Month(month), theDay, startHour, startMinute, 0, 0, CEST)
 }
 
-func createProgramFromEventProgram(schedule *VierdaagseOverview, location VierdaagseLocation, prog *Program) VierdaagseProgram {
+func createProgramFromEventProgram(schedule *VierdaagseOverview, location VierdaagseLocation, prog *Program) (VierdaagseProgram, bool) {
 	theDay, err := extractDayWithIdFromEvent(schedule, prog.FullStartTime, prog.FullEndTime)
 	if err != nil {
 		slog.Error("could not match date with event, skipping", "event", prog.Title, "startTime", prog.FullStartTime, "endTime", prog.FullEndTime)
-		return VierdaagseProgram{}
+		return VierdaagseProgram{}, false
 	}
 
 	tpf, exact := prog.TicketPrice.Float64()
@@ -99,7 +99,7 @@ func createProgramFromEventProgram(schedule *VierdaagseOverview, location Vierda
 		TicketsPrice:       tpf,
 		TicketsLink:        prog.TicketLink,
 		TicketsSoldOut:     prog.TicketsSoldOut,
-	}
+	}, true
 }
 
 // vim: cc=120:

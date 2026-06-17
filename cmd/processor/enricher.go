@@ -58,7 +58,9 @@ func EnrichGenericEvent(schedule *VierdaagseOverview, event EventData) error {
 
 	programs := make([]VierdaagseProgram, 0, len(event.Programs))
 	for _, prog := range event.Programs {
-		programs = append(programs, createProgramFromEventProgram(schedule, theLoc, prog))
+		if programFromEvent, ok := createProgramFromEventProgram(schedule, theLoc, prog); ok {
+			programs = append(programs, programFromEvent)
+		}
 	}
 
 	currentProgramIds := make(map[int]struct{})
