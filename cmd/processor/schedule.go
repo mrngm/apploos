@@ -190,7 +190,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			// No full start time defined yet, let's try to derive it
 			if prog.StartTime == "" {
 				// Try to derive the start time from SortDate
-				if strings.HasPrefix(prog.SortDate, "2026071") && len(prog.SortDate) == 12 {
+				if (strings.HasPrefix(prog.SortDate, "2026071") || strings.HasPrefix(prog.SortDate, "2026072")) && len(prog.SortDate) == 12 {
 					program.FullStartTime = appendEventTime(theDayDate, prog.SortDate[8:10]+":"+prog.SortDate[10:12])
 					program.StartTimeEstimated = true
 				}
@@ -205,7 +205,12 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			// No full end time defined yet, let's try to derive it
 			if prog.EndTime == "" {
 				// Guesstimate that the program takes 30m
-				program.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
+				if prog.FullStartTime.IsZero() {
+					// Use our derivation from SortDate
+					program.FullEndTime = program.FullStartTime.Add(30 * time.Minute)
+				} else {
+					program.FullEndTime = prog.FullStartTime.Add(30 * time.Minute)
+				}
 				program.EndTimeEstimated = true
 			} else {
 				program.FullEndTime = appendEventTime(theDayDate, prog.EndTime)
