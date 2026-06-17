@@ -54,6 +54,23 @@ type Program struct {
 	EndTimeEstimated   bool // When the program was published, but did not have a EndTime yet, and guessed the duration
 }
 
+func (p Program) String() string {
+	dqi := " "
+	dqiExpanded := ""
+	if p.DataQualityIssues != 0 {
+		dqi = " (!) "
+		dqiExpanded = " (" + DQIToString(p.DataQualityIssues) + ")"
+	}
+	return fmt.Sprintf("[%v]%s%v - %v: %s%s",
+		p.FullStartTime.Format("2006-01-02"),
+		dqi,
+		p.FullStartTime.Format("15:04"),
+		p.FullEndTime.Format("15:04"),
+		p.Title,
+		dqiExpanded,
+	)
+}
+
 // EventData provides an easy format for importing events from other locations.
 //
 // XXX: Program uses DayId and LocationId internally; it's not reasonable to think that external events use the same identifiers.

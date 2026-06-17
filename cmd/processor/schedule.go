@@ -238,6 +238,8 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			dayToPrograms[dayId] = make([]*Program, 0)
 		}
 		dayToPrograms[dayId] = append(dayToPrograms[dayId], program)
+
+		slog.Info("adding programs from schedule", "program", *program)
 	}
 	for dayId := range dayToPrograms {
 		slices.SortFunc(dayToPrograms[dayId], func(a, b *Program) int {
