@@ -81,7 +81,7 @@ var htmlTemplate = `<!DOCTYPE html>
           {{- range $childLocation := $location.Children -}}
             {{- $nrProgsToday := index $childLocation.TotalNrProgramsByDay $currentDayId -}}
             {{- if ne $nrProgsToday 0 }}
-            <h3 class="sticky-2" id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}-{{ $childLocation.Slug }}">{{ $childLocation.Title }}</h3>
+            <h3 class="sticky-2" id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}-{{ $childLocation.Slug }}">{{ titleOrAlias $childLocation.Title $childLocation.Alias }}</h3>
             <div class="events-child-location">
             {{- range $dayId, $progs := $childLocation.ProgramsByDay -}}
               {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else }}

@@ -16,8 +16,11 @@ import (
 var (
 	locationNameRemapping = map[string]string{
 		"De Kaaij - aan de Waal": "De Kaaij",
-		"De Kaaij aan de Waal":   "De Kaaij",
 		"Kaaij Hoog":             "De Kaaij (Hoog)",
+	}
+	childLocationPrefixDifferences = map[string]string{
+		"De Kaaij aan de Waal": "De Kaaij",
+		"Grote markt":          "Grote Markt",
 	}
 )
 
@@ -75,6 +78,13 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 			if theChildLoc.Alias == theChildLoc.Title {
 				theChildLoc.DataQualityIssues |= DQIChildLocationContainsDifferentPrefix
 				slog.Warn("child location has different prefix than parent's title", "childTitle", theChildLoc.Title, "parentTitle", theParentLoc.Title, "parentAlias", theParentLoc.Alias)
+				for knownChildPrefix, _ := range childLocationPrefixDifferences {
+					if strings.HasPrefix(theChildLoc.Alias, knownChildPrefix) {
+						theChildLoc.Alias = strings.TrimSpace(strings.TrimLeft(strings.TrimPrefix(theChildLoc.Title, knownChildPrefix), "- "))
+						slog.Warn("replaced child location alias prefix", "childTitle", theChildLoc.Title, "knownChildPrefix", knownChildPrefix, "replacement", theChildLoc.Alias, "parentTitle", theParentLoc.Title, "parentAlias", theParentLoc.Alias)
+						break
+					}
+				}
 			}
 			theParentLoc.Children = append(theParentLoc.Children, theChildLoc)
 		}
