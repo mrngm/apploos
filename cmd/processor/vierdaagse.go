@@ -27,6 +27,7 @@ const (
 	DQISummaryFromDescription
 	DQIOnlySummary
 	DQINoDaySet
+	DQIChildLocationContainsDifferentPrefix
 )
 
 // DQIToString formats the encapsulated quality issues into a slug-ish string, separated with spaces
@@ -52,6 +53,9 @@ func DQIToString(issues DQI) string {
 	}
 	if issues&DQINoDaySet != 0 {
 		ret = append(ret, "no-day-set")
+	}
+	if issues&DQIChildLocationContainsDifferentPrefix != 0 {
+		ret = append(ret, "child-location-different-prefix")
 	}
 	return strings.Join(ret, ", ")
 }

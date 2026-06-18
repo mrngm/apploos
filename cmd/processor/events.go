@@ -21,12 +21,14 @@ type Day struct {
 type Location struct {
 	Id            int
 	Title         string
+	Alias         string // optional rename, if set, use this name
 	Slug          string
 	HasParent     bool
 	ProgramsByDay map[int][]*Program
 	Children      []*Location
 
 	TotalNrProgramsByDay map[int]int
+	DataQualityIssues    DQI `json:",omitifempty"`
 }
 
 func (l *Location) String() string {

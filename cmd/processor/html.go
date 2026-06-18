@@ -57,7 +57,7 @@ var htmlTemplate = `<!DOCTYPE html>
         {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
         {{- if ne $nrProgsToday 0 }}
         <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">
-          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle hide-location-id-{{ $location.Id }}" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="hideLocation(this)" /> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ $location.Title }}</a></h2>
+          <h2 class="sticky-1"><input type="checkbox" class="hide-location-toggle hide-location-id-{{ $location.Id }}" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="hideLocation(this)" /> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ titleOrAlias $location.Title $location.Alias }}</a></h2>
           <div class="events-all">
         {{- range $dayId, $progs := $location.ProgramsByDay -}}
           {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else -}}

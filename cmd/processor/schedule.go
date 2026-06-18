@@ -13,6 +13,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+var (
+	locationNameRemapping = map[string]string{
+		"De Kaaij - aan de Waal": "De Kaaij",
+		"De Kaaij aan de Waal":   "De Kaaij",
+		"Kaaij Hoog":             "De Kaaij (Hoog)",
+	}
+)
+
 func SetupDays(everything VierdaagseOverview) []*Day {
 	days := make([]*Day, len(everything.Days))
 	for i, day := range everything.Days {
@@ -42,6 +50,9 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 		theLoc := locations[loc.Id]
 		theLoc.Id = loc.Id
 		theLoc.Title = loc.Title
+		if alias, ok := locationNameRemapping[loc.Title]; ok {
+			theLoc.Alias = alias
+		}
 		theLoc.Slug = loc.Slug
 		if loc.Parent > 0 {
 			// Sub locations, fill into parent location's Children in separate loop
@@ -60,7 +71,11 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 			if !ok {
 				panic("location child should exist")
 			}
-			theChildLoc.Title = strings.TrimSpace(strings.TrimLeft(strings.TrimPrefix(theChildLoc.Title, theParentLoc.Title), "- "))
+			theChildLoc.Alias = strings.TrimSpace(strings.TrimLeft(strings.TrimPrefix(theChildLoc.Title, theParentLoc.Title), "- "))
+			if theChildLoc.Alias == theChildLoc.Title {
+				theChildLoc.DataQualityIssues |= DQIChildLocationContainsDifferentPrefix
+				slog.Warn("child location has different prefix than parent's title", "childTitle", theChildLoc.Title, "parentTitle", theParentLoc.Title, "parentAlias", theParentLoc.Alias)
+			}
 			theParentLoc.Children = append(theParentLoc.Children, theChildLoc)
 		}
 	}
@@ -70,7 +85,7 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 		if len(theLoc.Children) > 0 || !theLoc.HasParent {
 			sortedMainLocations = append(sortedMainLocations, theLoc)
 			// Sort the children based on name
-			slices.SortFunc(theLoc.Children, CompareLocationByTitle)
+			slices.SortFunc(theLoc.Children, CompareLocationByEffectiveTitle)
 			for _, childLoc := range theLoc.Children {
 				if len(childLoc.Children) > 0 {
 					slog.Error("child location has more locations", "len", len(childLoc.Children))
@@ -78,11 +93,21 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 			}
 		}
 	}
-	slices.SortFunc(sortedMainLocations, CompareLocationByTitle)
+	slices.SortFunc(sortedMainLocations, CompareLocationByEffectiveTitle)
 	return locations, sortedMainLocations
 }
 
-func CompareLocationByTitle(a, b *Location) int {
+func CompareLocationByEffectiveTitle(a, b *Location) int {
+	if a.Alias == "" && b.Alias != "" {
+		return strings.Compare(a.Title, b.Alias)
+	}
+	if a.Alias != "" && b.Alias == "" {
+		return strings.Compare(a.Alias, b.Title)
+	}
+	if a.Alias != "" && b.Alias != "" {
+		return strings.Compare(a.Alias, b.Alias)
+	}
+
 	return strings.Compare(a.Title, b.Title)
 }
 
@@ -314,6 +339,12 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 		"formatHourMins": func(t time.Time) string { return t.Format("15:04") },
 		"decimalGtZero":  func(d decimal.Decimal) bool { return d.GreaterThan(decimal.Decimal{}) },
 		"isVuurwerk":     func(s string) bool { return strings.Contains(strings.ToLower(s), "waal in vlammen") },
+		"titleOrAlias": func(title, alias string) string {
+			if alias != "" {
+				return alias
+			}
+			return title
+		},
 	}
 
 	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))
