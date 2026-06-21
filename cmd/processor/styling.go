@@ -135,7 +135,7 @@ a.location-title {
   margin-bottom: 2.125em;
 }
 #main > section {
-  height: 100vh;
+  height: stretch;
   overflow-y: scroll;
   overflow-x: hidden;
   flex: 0 0 100vw;
