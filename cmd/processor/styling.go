@@ -20,10 +20,11 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overscroll-behavior: none;
 }
 
 h1, h2, h3 {
-  font-size: 16pt;
+  font-size: 14pt;
   line-height: 1.5em; /* necessary for accurately doing magic with position: sticky-overlaps */
 }
 
@@ -164,7 +165,7 @@ section > section {
 
 .event {
   padding: 0.25ex 0.75ex 0.25ex 0.5ex;
-  font-size: 14pt;
+  font-size: 12pt;
   margin: 0.125em 0 0.125em 0;
 }
 .event:first-child {
