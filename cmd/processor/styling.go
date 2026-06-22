@@ -41,10 +41,12 @@ h3, a.location-title, h1 {
   background-color: #2ecc72 !important;
 }
 .day > section > h2 {
-  background-color: #4169e1 !important;
+  /* hsl: 205 / 100% / 52% */
+  background-color: #0A99FF !important;
 }
 .day > h1 {
-  background-color: #d46a6a !important;
+  /* hsl: 205 / 100% / 70% */
+  background-color: #66BFFF !important;
 }
 .day > h1 a {
     /* display: block; */
@@ -68,7 +70,8 @@ a.location-title {
 }
 */
 .event {
-  background-color: #99b1f9 !important;
+  /* hsl: 205 / 100% / 63% */
+  background-color: #42B0FF !important;
 }
 .roze.day > h1 {
   /* hsl: 307 / 100% / 80% */
@@ -254,7 +257,8 @@ input.hide-location-toggle {
 label.hide-location {
   padding-left: 0.5em;
   padding-right: 0.5em;
-  background-color: #99b1f9;
+  /* hsl: 205 / 100% / 70% */
+  background-color: #66BFFF;
   user-select: none;
 }
 .roze > section > h2 label.hide-location {
