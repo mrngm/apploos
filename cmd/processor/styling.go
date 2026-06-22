@@ -80,12 +80,12 @@ a.location-title {
 }
 */
 .roze .event {
-  /* hsl: 307 / 100% / 62% */
-  background-color: #FF3DE8 !important;
-}
-.roze.day > section > h2 {
   /* hsl: 307 / 100% / 73% */
   background-color: #FF75EF !important;
+}
+.roze.day > section > h2 {
+  /* hsl: 307 / 100% / 62% */
+  background-color: #FF3DE8 !important;
 }
 .roze > section > h3 {
   background-color: #fe6ef7 !important;
@@ -258,8 +258,8 @@ label.hide-location {
   user-select: none;
 }
 .roze > section > h2 label.hide-location {
-  /* hsl: 307 / 100% / 62% */
-  background-color: #FF3DE8 !important;
+  /* hsl: 307 / 100% / 80% */
+  background-color: #FF99F8 !important;
 }
 label.hide-location::after {
   content: '\2716'; /* -- */
