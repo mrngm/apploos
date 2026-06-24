@@ -20,6 +20,10 @@ var stylesheetCSS = []byte(`
   --event-location-bg: hsl(205, 100%, 52%);
   --event-details-bg: hsl(205, 100%, 63%);
 
+  --roze-day-indicator-bg: hsl(307, 100%, 62%);
+  --roze-event-location-bg: hsl(307, 100%, 73%);
+  --roze-event-details-bg: hsl(307, 100%, 90%);
+
   --event-location-hide-bg: var(--day-indicator-bg);
 }
 
@@ -80,10 +84,7 @@ a.location-title {
   background-color: var(--event-details-bg) !important;
 }
 .roze.day > h1 {
-  /* hsl: 307 / 100% / 80% */
-  background-color: #FF99F8 !important;
-  /* hsl: 307 / 100% / 62% */
-  background-color: #FF3DE8 !important;
+  background-color: var(--roze-day-indicator-bg) !important;
 }
 /*
 .roze .event:nth-of-type(even) {
@@ -91,18 +92,10 @@ a.location-title {
 }
 */
 .roze .event {
-  /* hsl: 307 / 100% / 73% */
-  background-color: #FF75EF !important;
-  /* hsl: 307 / 100% / 80% */
-  background-color: #FF99F8 !important;
-  /* hsl: 307 / 100% / 90% */
-  background-color: #FFCCFC !important;
+  background-color: var(--roze-event-details-bg) !important;
 }
 .roze.day > section > h2 {
-  /* hsl: 307 / 100% / 62% */
-  background-color: #FF3DE8 !important;
-  /* hsl: 307 / 100% / 73% */
-  background-color: #FF75EF !important;
+  background-color: var(--roze-event-location-bg) !important;
 }
 .roze > section > h3 {
   background-color: #fe6ef7 !important;
