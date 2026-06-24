@@ -193,7 +193,7 @@ section > section {
 .event:last-child {
   margin-bottom: 0.5em;
 }
-.event:only-child {
+.events-all > .event:only-child {
   margin-top: 0;
   margin-bottom: 0;
 }
