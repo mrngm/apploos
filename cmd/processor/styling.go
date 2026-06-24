@@ -16,12 +16,9 @@ var stylesheetCSS = []byte(`
 
 /* define some reusable variables */
 :root {
-  /* hsl: 205 / 100% / 70% */
-  --day-indicator-bg: #66BFFF;
-  /* hsl: 205 / 100% / 52% */
-  --event-location-bg: #0A99FF;
-  /* hsl: 205 / 100% / 63% */
-  --event-details-bg: #42B0FF;
+  --day-indicator-bg: hsl(205, 100%, 70%);
+  --event-location-bg: hsl(205, 100%, 52%);
+  --event-details-bg: hsl(205, 100%, 63%);
 
   --event-location-hide-bg: var(--day-indicator-bg);
 }
