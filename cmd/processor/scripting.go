@@ -138,6 +138,33 @@ function triggerLocationHiddenToggle(classId, isChecked) {
         toggle.checked = isChecked;
     }
 }
+function removeLocation(elem) {
+    console.log("removeLocation for elem: " + elem.id + ", checked: " + elem.checked + ", classList: " + elem.classList);
+    if(elem.parent) {
+        elem.parent.scrollIntoView({block: "nearest"});
+    }
+    let locationClassId = null;
+    elem.classList.forEach( (value, index, listObj) => {
+        if(value.startsWith("remove-location-id-")) {
+            locationClassId = value;
+        }
+    });
+    if(locationClassId !== null) {
+        console.log("Found location Class ID: " + locationClassId);
+        let stored = storeItem(locationClassId, (elem.checked) ? "hidden" : "revealed");
+        if(!stored) {
+            console.log("Tried to store location hidden information for " + elem.id + ", but it failed");
+        }
+        triggerLocationRemovedToggle(locationClassId, elem.checked);
+    }
+}
+function triggerLocationRemovedToggle(classId, isChecked) {
+    const locationToggles = document.getElementsByClassName(classId);
+    for(const toggle of locationToggles) {
+        console.log("Removing location " + toggle.id + " from " + toggle.checked + " to " + isChecked);
+        toggle.checked = isChecked;
+    }
+}
 
 function syncStorageToPage() {
     if(!storageUsable()) {

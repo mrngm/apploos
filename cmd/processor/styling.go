@@ -27,7 +27,9 @@ var stylesheetCSS = []byte(`
   --roze-event-details-bg: hsl(307, 100%, 92%);
 
   --event-location-hide-bg: var(--day-indicator-bg);
+  --event-location-remove-bg: var(--day-indicator-bg);
   --roze-event-location-hide-bg: var(--roze-day-indicator-bg);
+  --roze-event-location-remove-bg: var(--roze-day-indicator-bg);
 }
 
 body {
@@ -288,7 +290,49 @@ input.hide-location-toggle:checked ~ label.hide-location::after {
   content: '\25c1'; /* + */
   content: '\002b'; /* + */
 }
-/* End location description */
+/* End location toggle */
+
+/* Remove location from display; default state is unchecked so checking it will remove it from view*/
+/*
+section:has(h2 > input.remove-location-toggle:checked) {
+  margin-bottom: 0;
+}
+section:last-child:has(h2 > input.remove-location-toggle:checked) {
+  margin-bottom: 0.5em;
+}
+*/
+h2:has(input.remove-location-toggle:checked) ~ div.events-all {
+  display: none;
+}
+h2:has(input.remove-location-toggle:not(:checked)) ~ div.events-all {
+  display: block;
+}
+h2:has(input.remove-location-toggle:not(:checked)):has(input.hide-location-toggle:checked) ~ div.events-all {
+  display: none;
+}
+input.remove-location-toggle {
+  display: none;
+}
+
+label.remove-location {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  background-color: var(--event-location-remove-bg);
+  user-select: none;
+}
+.roze > section > h2 label.remove-location {
+  background-color: var(--roze-event-location-remove-bg) !important;
+}
+label.remove-location::after {
+  content: '\2611'; /* BALLOT BOX WITH CHECK */
+}
+input.remove-location-toggle:checked ~ label.remove-location::after {
+  content: '\2610'; /* BALLOT BOX */
+}
+input.remove-location-toggle:checked ~ a.location-title {
+  text-decoration: line-through;
+}
+/* End location display */
 
 /* Magic CSS to hide/show based on target click
 .show, .hide:target, dd.description {
