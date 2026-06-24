@@ -14,6 +14,18 @@ var stylesheetCSS = []byte(`
   box-sizing: border-box;
 }
 
+/* define some reusable variables */
+:root {
+  /* hsl: 205 / 100% / 70% */
+  --day-indicator-bg: #66BFFF;
+  /* hsl: 205 / 100% / 52% */
+  --event-location-bg: #0A99FF;
+  /* hsl: 205 / 100% / 63% */
+  --event-details-bg: #42B0FF;
+
+  --event-location-hide-bg: var(--day-indicator-bg);
+}
+
 body {
   background-color: #f4f4f4;
   color: black;
@@ -41,12 +53,10 @@ h3, a.location-title, h1 {
   background-color: #2ecc72 !important;
 }
 .day > section > h2 {
-  /* hsl: 205 / 100% / 52% */
-  background-color: #0A99FF !important;
+  background-color: var(--event-location-bg) !important;
 }
 .day > h1 {
-  /* hsl: 205 / 100% / 70% */
-  background-color: #66BFFF !important;
+  background-color: var(--day-indicator-bg) !important;
 }
 .day > h1 a {
     /* display: block; */
@@ -70,8 +80,7 @@ a.location-title {
 }
 */
 .event {
-  /* hsl: 205 / 100% / 63% */
-  background-color: #42B0FF !important;
+  background-color: var(--event-details-bg) !important;
 }
 .roze.day > h1 {
   /* hsl: 307 / 100% / 80% */
@@ -265,8 +274,7 @@ input.hide-location-toggle {
 label.hide-location {
   padding-left: 0.5em;
   padding-right: 0.5em;
-  /* hsl: 205 / 100% / 70% */
-  background-color: #66BFFF;
+  background-color: var(--event-location-hide-bg);
   user-select: none;
 }
 .roze > section > h2 label.hide-location {
