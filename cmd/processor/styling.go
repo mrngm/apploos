@@ -187,15 +187,16 @@ section > section {
   font-size: 12pt;
   margin: 0.125em 0 0.125em 0;
 }
-.event:first-child {
-  margin-top: 0.25em;
-}
-.event:last-child {
-  margin-bottom: 0.5em;
-}
 .events-all > .event:only-child {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+.day {
+  background-color: var(--event-location-bg);
+}
+.roze.day {
+  background-color: var(--roze-event-location-bg);
 }
 
 /* event after h3, subsequent-sibling combinator */
