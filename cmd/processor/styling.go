@@ -16,15 +16,18 @@ var stylesheetCSS = []byte(`
 
 /* define some reusable variables */
 :root {
-  --day-indicator-bg: hsl(205, 100%, 70%);
-  --event-location-bg: hsl(205, 100%, 52%);
-  --event-details-bg: hsl(205, 100%, 63%);
+  --day-indicator-bg: hsl(205, 100%, 52%);
+  --event-location-bg: hsl(205, 100%, 69%);
+  --event-sub-location-bg: hsl(205, 100%, 83%);
+  --event-details-bg: hsl(205, 100%, 90%);
 
   --roze-day-indicator-bg: hsl(307, 100%, 62%);
   --roze-event-location-bg: hsl(307, 100%, 73%);
-  --roze-event-details-bg: hsl(307, 100%, 90%);
+  --roze-event-sub-location-bg: hsl(307, 100%, 84%);
+  --roze-event-details-bg: hsl(307, 100%, 92%);
 
   --event-location-hide-bg: var(--day-indicator-bg);
+  --roze-event-location-hide-bg: var(--roze-day-indicator-bg);
 }
 
 body {
@@ -55,6 +58,9 @@ h3, a.location-title, h1 {
 }
 .day > section > h2 {
   background-color: var(--event-location-bg) !important;
+}
+.day > section > div > h3 {
+  background-color: var(--event-sub-location-bg) !important;
 }
 .day > h1 {
   background-color: var(--day-indicator-bg) !important;
@@ -97,8 +103,8 @@ a.location-title {
 .roze.day > section > h2 {
   background-color: var(--roze-event-location-bg) !important;
 }
-.roze > section > h3 {
-  background-color: #fe6ef7 !important;
+.roze > section > div > h3 {
+  background-color: var(--roze-event-sub-location-bg) !important;
 }
 
 .roze .event.past {
@@ -268,10 +274,7 @@ label.hide-location {
   user-select: none;
 }
 .roze > section > h2 label.hide-location {
-  /* hsl: 307 / 100% / 80% */
-  background-color: #FF99F8 !important;
-  /* hsl: 307 / 100% / 62% */
-  background-color: #FF3DE8 !important;
+  background-color: var(--roze-event-location-hide-bg) !important;
 }
 label.hide-location::after {
   content: '\2716'; /* -- */
