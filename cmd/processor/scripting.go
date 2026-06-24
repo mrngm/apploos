@@ -111,6 +111,7 @@ function right() {
         nextSection.scrollIntoView();
     }
 }
+
 function hideLocation(elem) {
     console.log("hideLocation for elem: " + elem.id + ", checked: " + elem.checked + ", classList: " + elem.classList);
     if(elem.parent) {
@@ -165,6 +166,26 @@ function triggerLocationRemovedToggle(classId, isChecked) {
         toggle.checked = isChecked;
     }
 }
+function toggleRemoveLocations() {
+    const toggleCb = document.getElementById("eye-toggle-checkbox");
+    const removeLocations = document.querySelectorAll(".remove-location-toggle");
+    for(const elem of removeLocations) {
+        let elemLabels = elem.labels;
+        if(toggleCb.checked) {
+            for(const elemLabel of elemLabels) {
+                elemLabel.classList.remove("dont-display");
+            }
+            elem.parentNode.parentNode.classList.remove("dont-display");
+        } else {
+            for(const elemLabel of elemLabels) {
+                elemLabel.classList.add("dont-display");
+            }
+            if(elem.checked) {
+                elem.parentNode.parentNode.classList.add("dont-display");
+            }
+        }
+    }
+}
 
 function syncStorageToPage() {
     if(!storageUsable()) {
@@ -174,7 +195,7 @@ function syncStorageToPage() {
         let storeKey = window.localStorage.key(i);
         if(storeKey.startsWith("hide-location-id-")) {
             let storeVal = window.localStorage.getItem(storeKey);
-            console.log("Found location toggle in localStorage: " + storeKey + ": " + storeVal);
+            console.log("Found location hide toggle in localStorage: " + storeKey + ": " + storeVal);
             if(storeVal === "hidden") {
                 triggerLocationHiddenToggle(storeKey, true);
             }
@@ -182,7 +203,18 @@ function syncStorageToPage() {
                 triggerLocationHiddenToggle(storeKey, false);
             }
         }
+        if(storeKey.startsWith("remove-location-id-")) {
+            let storeVal = window.localStorage.getItem(storeKey);
+            console.log("Found location removal toggle in localStorage: " + storeKey + ": " + storeVal);
+            if(storeVal === "hidden") {
+                triggerLocationRemovedToggle(storeKey, true);
+            }
+            if(storeVal === "revealed") {
+                triggerLocationRemovedToggle(storeKey, false);
+            }
+        }
     }
+    toggleRemoveLocations();
 }
 window.addEventListener("load", syncStorageToPage);
 `)

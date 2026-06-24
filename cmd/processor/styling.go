@@ -41,6 +41,10 @@ body {
   overscroll-behavior: none;
 }
 
+.dont-display {
+  display: none;
+}
+
 h1, h2, h3 {
   font-size: 14pt;
   line-height: 1.5em; /* necessary for accurately doing magic with position: sticky-overlaps */
@@ -332,6 +336,27 @@ input.remove-location-toggle:checked ~ label.remove-location::after {
 input.remove-location-toggle:checked ~ a.location-title {
   text-decoration: line-through;
 }
+label.eye-button {
+  display: block;
+  font-size: 14pt;
+  background-color: #4169e1;
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+  width: 100%;
+  padding: .1ex;
+  border-top: 2px solid #6a89ea;
+  border-right: 2px solid #38497e;
+  border-bottom: 2px solid #38497e;
+  border-left: 2px solid #6a89ea;
+  color: white;
+}
+label.eye-button::after {
+  content: '\2610'; /* BALLOT BOX WITH CHECK */
+}
+input#eye-toggle-checkbox:checked ~ label.eye-button::after {
+  content: '\2611'; /* BALLOT BOX */
+}
 /* End location display */
 
 /* Magic CSS to hide/show based on target click
@@ -387,7 +412,7 @@ ul.navigation {
   list-style-type: none;
 }
 ul.navigation li {
-  flex: 1 1 20vw;
+  flex: 1 1 15vw;
   text-align: center;
   margin-top: .2ex;
   margin-left: .2ex;

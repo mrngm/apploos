@@ -6,6 +6,7 @@ var navigation = `<div id="nav">
       <ul class="navigation">
         <li class="nav-left"><button onclick="left()">&larr; dag</button></li>
         <li class="nav-up"><button onclick="up()">&uarr;</button></li>
+        <li class="nav-eye"><input type="checkbox" class="dont-display" id="eye-toggle-checkbox" onChange="toggleRemoveLocations()" /><label class="eye-button" for="eye-toggle-checkbox"></label></li>
         <li class="nav-down"><button onclick="down()">&darr;</button></li>
         <li class="nav-right"><button onclick="right()">dag &rarr;</button></li>
       </ul>
@@ -37,8 +38,7 @@ var htmlTemplate = `<!DOCTYPE html>
                 }
             }
         }
-        window.addEventListener("load", scrollToAnchorOrDay);
-
+        window.addEventListener("load", scrollToAnchorOrDay());
     </script>
   </head>
   <body>
@@ -57,7 +57,7 @@ var htmlTemplate = `<!DOCTYPE html>
         {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
         {{- if ne $nrProgsToday 0 }}
         <section id="day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">
-          <h2 class="sticky-1"><input type="checkbox" class="remove-location-toggle remove-location-id-{{ $location.Id }}" id="remove-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="removeLocation(this)" /><input type="checkbox" class="hide-location-toggle hide-location-id-{{ $location.Id }}" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="hideLocation(this)" />  <label for="remove-location-{{ $currentDayId }}-{{ $location.Id }}" class="remove-location"></label> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ titleOrAlias $location.Title $location.Alias }}</a></h2>
+          <h2 class="sticky-1"><input type="checkbox" class="remove-location-toggle remove-location-id-{{ $location.Id }}" id="remove-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="removeLocation(this)" /><input type="checkbox" class="hide-location-toggle hide-location-id-{{ $location.Id }}" id="hide-location-{{ $currentDayId }}-{{ $location.Id }}" onchange="hideLocation(this)" />  <label for="remove-location-{{ $currentDayId }}-{{ $location.Id }}" class="remove-location dont-display"></label> <label for="hide-location-{{ $currentDayId }}-{{ $location.Id }}" class="hide-location"></label> <a class="location-title" href="#day-{{ $currentDayNumber }}-lokatie-{{ $location.Slug }}">{{ titleOrAlias $location.Title $location.Alias }}</a></h2>
           <div class="events-all">
         {{- range $dayId, $progs := $location.ProgramsByDay -}}
           {{- if ne $dayId $currentDayId -}} {{- continue -}} {{- else -}}
