@@ -339,17 +339,18 @@ input.remove-location-toggle:checked ~ a.location-title {
 label.eye-button {
   display: block;
   font-size: 14pt;
-  background-color: #4169e1;
+  background-color: var(--day-indicator-bg);
   text-align: center;
   text-decoration: none;
   height: 100%;
   width: 100%;
   padding: .1ex;
+  font-weight: bolder;
   border-top: 2px solid #6a89ea;
   border-right: 2px solid #38497e;
   border-bottom: 2px solid #38497e;
   border-left: 2px solid #6a89ea;
-  color: white;
+  color: black;
 }
 label.eye-button::after {
   content: '\2610'; /* BALLOT BOX WITH CHECK */
@@ -426,17 +427,18 @@ ul.navigation li:last-child {
 }
 li button {
   font-size: 14pt;
-  background-color: #4169e1;
+  background-color: var(--day-indicator-bg);
   text-align: center;
   text-decoration: none;
   height: 100%;
   width: 100%;
   padding: .1ex;
+  font-weight: bolder;
   border-top: 2px solid #6a89ea;
   border-right: 2px solid #38497e;
   border-bottom: 2px solid #38497e;
   border-left: 2px solid #6a89ea;
-  color: white;
+  color: black;
 }
 button {
   touch-action: manipulation;
@@ -444,7 +446,7 @@ button {
 }
 
 li button:active {
-  background-color: #99b1f9;
+  background-color: var(--event-details-bg);
 }
 `)
 var stylesheetCheckumShort = fmt.Sprintf("%x", sha256.Sum256(stylesheetCSS))[0:9]
