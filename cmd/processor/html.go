@@ -51,7 +51,7 @@ var htmlTemplate = `<!DOCTYPE html>
     {{- range $index, $day := $schedule.Days -}}
       {{- $currentDayNumber := add $index 1 -}}
       {{- $currentDayId := $day.Id }}
-      <section class="{{ if isRoze $day.Date -}} roze {{ end }}day" id="day-{{ $currentDayNumber }}">
+      <section class="{{ if isRoze $day.Date -}} roze {{ end }}day {{ if not $isProd }} syncscroll {{ end }}" id="day-{{ $currentDayNumber }}" name="daysection">
         <h1 class="sticky-0"><a href="#day-{{ $currentDayNumber }}">Dag {{ $currentDayNumber }}, {{ if isRoze $day.Date -}} Roze {{ end }}<time {{ formatRFC3339DatetimeAttr $day.Date }}>{{ $day.Title }}</time></a></h1>
       {{- range $location := $schedule.Locations -}}
         {{- $nrProgsToday := index $location.TotalNrProgramsByDay $currentDayId -}}
