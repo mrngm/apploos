@@ -51,65 +51,21 @@ function storeItem(name, value) {
     return true;
 }
 
-function up() {
-    let firstElement = null;
-    const locations = document.querySelectorAll(".location-title")
-    for(const el of locations) {
-        if(!isInViewport(el)) {
-            continue;
+function removeItem(name) {
+    if(!storageUsable()) {
+        return false;
+    }
+
+    try {
+        window.localStorage.removeItem(name)
+    } catch (e) {
+        if(e instanceof DOMException && e.name === "QuotaExceededError") {
+            console.log("QuotaExceededError while trying to remove " + name + " with value " + value);
         }
-        firstElement = el;
-        break;
+        return false;
     }
-    let previousSection = firstElement.parentNode.parentNode.previousElementSibling;
-    if(previousSection != null) {
-        previousSection.scrollIntoView();
-    }
-}
-function down() {
-    let firstElement = null;
-    const locations = document.querySelectorAll(".location-title")
-    for(const el of locations) {
-        if(!isInViewport(el)) {
-            continue;
-        }
-        firstElement = el;
-        break;
-    }
-    let nextSection = firstElement.parentNode.parentNode.nextElementSibling;
-    if(nextSection != null) {
-        nextSection.scrollIntoView();
-    }
-}
-function left() {
-    let firstElement = null;
-    const days = document.querySelectorAll(".day")
-    for(const el of days) {
-        if(!isInViewport(el)) {
-            continue;
-        }
-        firstElement = el;
-        break;
-    }
-    let previousSection = firstElement.previousElementSibling;
-    if(previousSection != null) {
-        previousSection.scrollIntoView();
-    }
-}
-function right() {
-    let firstElement = null;
-    const days = document.querySelectorAll(".day")
-    for(const el of days) {
-        if(!isInViewport(el)) {
-            continue;
-        }
-        firstElement = el;
-        break;
-    }
-    let nextSection = firstElement.nextElementSibling;
-    if(nextSection != null) {
-        nextSection.scrollIntoView();
-    }
+
+    return true;
 }
 
 function hideLocation(elem) {
@@ -125,7 +81,12 @@ function hideLocation(elem) {
     });
     if(locationClassId !== null) {
         console.log("Found location Class ID: " + locationClassId);
-        let stored = storeItem(locationClassId, (elem.checked) ? "hidden" : "revealed");
+        let stored = false;
+        if(elem.checked) {
+            stored = storeItem(locationClassId, "hidden");
+        } else {
+            stored = removeItem(locationClassId);
+        }
         if(!stored) {
             console.log("Tried to store location hidden information for " + elem.id + ", but it failed");
         }
@@ -152,7 +113,12 @@ function removeLocation(elem) {
     });
     if(locationClassId !== null) {
         console.log("Found location Class ID: " + locationClassId);
-        let stored = storeItem(locationClassId, (elem.checked) ? "hidden" : "revealed");
+        let stored = false;
+        if(elem.checked) {
+            stored = storeItem(locationClassId, "hidden");
+        } else {
+            stored = removeItem(locationClassId);
+        }
         if(!stored) {
             console.log("Tried to store location hidden information for " + elem.id + ", but it failed");
         }
@@ -200,6 +166,7 @@ function syncStorageToPage() {
                 triggerLocationHiddenToggle(storeKey, true);
             }
             if(storeVal === "revealed") {
+                removeItem(storeKey); // BC
                 triggerLocationHiddenToggle(storeKey, false);
             }
         }
@@ -210,6 +177,7 @@ function syncStorageToPage() {
                 triggerLocationRemovedToggle(storeKey, true);
             }
             if(storeVal === "revealed") {
+                removeItem(storeKey); // BC
                 triggerLocationRemovedToggle(storeKey, false);
             }
         }

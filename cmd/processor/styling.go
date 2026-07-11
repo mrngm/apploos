@@ -360,6 +360,31 @@ input#eye-toggle-checkbox:checked ~ label.eye-button::after {
 }
 /* End location display */
 
+label.expandcollapse-button {
+  display: block;
+  font-size: 14pt;
+  background-color: var(--day-indicator-bg);
+  text-align: center;
+  text-decoration: none;
+  height: 100%;
+  width: 100%;
+  padding: .1ex;
+  font-weight: bolder;
+  border-top: 2px solid #6a89ea;
+  border-right: 2px solid #38497e;
+  border-bottom: 2px solid #38497e;
+  border-left: 2px solid #6a89ea;
+  color: black;
+}
+label.expandcollapse-button::after {
+  content: '\2610'; /* BALLOT BOX WITH CHECK */
+  content: '   \2212'; /* -- */
+}
+input#expandcollapse-toggle-checkbox:checked ~ label.expandcollapse-button::after {
+  content: '\2611'; /* BALLOT BOX */
+  content: '\002b'; /* + */
+}
+
 /* Magic CSS to hide/show based on target click
 .show, .hide:target, dd.description {
   display: none;

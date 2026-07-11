@@ -4,11 +4,8 @@ var testingBanner = `<div id="testing-banner">TESTOMGEVING, <a href="https://app
 
 var navigation = `<div id="nav">
       <ul class="navigation">
-        <li class="nav-left"><button onclick="left()">&larr; dag</button></li>
-        <li class="nav-up"><button onclick="up()">&uarr;</button></li>
+<!--        <li class="nav-expandcollapse"><input type="checkbox" class="dont-display" id="expandcollapse-toggle-checkbox" onChange="toggleHideLocations()" /><label class="expandcollapse-button" for="expandcollapse-toggle-checkbox"></label></li>-->
         <li class="nav-eye"><input type="checkbox" class="dont-display" id="eye-toggle-checkbox" onChange="toggleRemoveLocations()" /><label class="eye-button" for="eye-toggle-checkbox"></label></li>
-        <li class="nav-down"><button onclick="down()">&darr;</button></li>
-        <li class="nav-right"><button onclick="right()">dag &rarr;</button></li>
       </ul>
     </div>`
 
