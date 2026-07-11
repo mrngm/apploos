@@ -241,6 +241,7 @@ window.addEventListener("load", syncStorageToPage);
     var Top = 'Top';
     var Left = 'Left';
     var scroll = 'scroll';
+    var scrollev = 'scrollend'; // GM: allow other events to trigger
     var client = 'client';
     var EventListener = 'EventListener';
     var addEventListener = 'add' + EventListener;
@@ -258,7 +259,7 @@ window.addEventListener("load", syncStorageToPage);
             if (names.hasOwnProperty(name)) {
                 for (i = 0; i < names[name][length]; i++) {
                     names[name][i]['remove'+EventListener](
-                        scroll, names[name][i].syn, 0
+                        scrollev, names[name][i].syn, 0
                     );
                 }
             }
@@ -289,7 +290,7 @@ window.addEventListener("load", syncStorageToPage);
 
             (function(el, name) {
                 el[addEventListener](
-                    scroll,
+                    scrollev,
                     el.syn = function() {
                         var elems = names[name];
 
