@@ -137,6 +137,14 @@ func appendEventTime(initialTime time.Time, eventTime string) time.Time {
 }
 
 func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*Program) {
+	genreIdsToGenre := make(map[ /* genreId */ int]string)
+
+	for _, genre := range everything.Genres {
+		if _, ok := genreIdsToGenre[genre.Id]; !ok {
+			genreIdsToGenre[genre.Id] = strings.ToLower(genre.Title)
+		}
+	}
+
 	dayToPrograms := make(map[ /* dayId */ int][] /* sorted slice based on start_time full details */ *Program)
 	programs := make(map[int]*Program)
 	for _, prog := range everything.Programs {
@@ -152,7 +160,17 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			TicketPrice:    tpf,
 			TicketLink:     prog.TicketsLink,
 			TicketsSoldOut: prog.TicketsSoldOut,
+			Genres:         make([]string, 0, len(prog.Genres)),
 		}
+
+		for _, genre := range prog.Genres {
+			if genreTitle, ok := genreIdsToGenre[genre.Id]; ok {
+				program.Genres = append(program.Genres, genreTitle)
+			} else {
+				slog.Warn("program contains genreId not in overview", "genre", genre, "progId", program.Id)
+			}
+		}
+		slices.Sort(program.Genres)
 
 		// Record some data quality issues, try to fix some
 		if len(program.Details) < 3 {
@@ -355,6 +373,7 @@ func RenderSchedule(everything VierdaagseOverview) ([]byte, error) {
 			}
 			return title
 		},
+		"join": func(elems []string, sep string) string { return strings.Join(elems, sep) },
 	}
 
 	tpl := template.Must(template.New("schedule").Funcs(templateFuncs).Parse(htmlTemplate))

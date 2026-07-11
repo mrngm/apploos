@@ -473,5 +473,14 @@ button {
 li button:active {
   background-color: var(--event-details-bg);
 }
+
+.genres {
+  font-style: italic;
+  margin-top: 1.5ex;
+}
+.genres::before {
+  font-style: normal;
+  content: "Genre: ";
+}
 `)
 var stylesheetCheckumShort = fmt.Sprintf("%x", sha256.Sum256(stylesheetCSS))[0:9]

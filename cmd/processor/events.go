@@ -46,6 +46,7 @@ type Program struct {
 	TicketLink     string
 	TicketPrice    decimal.Decimal
 	TicketsSoldOut bool
+	Genres         []string
 
 	FullStartTime      time.Time
 	FullEndTime        time.Time
