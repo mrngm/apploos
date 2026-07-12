@@ -170,6 +170,9 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 				slog.Warn("program contains genreId not in overview", "genre", genre, "progId", program.Id)
 			}
 		}
+		if len(program.Genres) == 0 {
+			program.DataQualityIssues |= DQINoGenres
+		}
 		slices.Sort(program.Genres)
 
 		// Record some data quality issues, try to fix some
