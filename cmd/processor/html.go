@@ -71,7 +71,9 @@ var htmlTemplate = `<!DOCTYPE html>
               <dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
               <dd class="description">{{ $prog.Details }} </dd>
                 {{- end }}
+              {{- if len $prog.Genres | ne 0 -}}
               <span class="genres">{{ join $prog.Genres ", " }}</span>
+              {{- end -}}
             </div>
               {{- end -}}
             {{- end -}}
@@ -95,7 +97,9 @@ var htmlTemplate = `<!DOCTYPE html>
               <input type="checkbox" class="hide-description-toggle" id="hide-description-{{ $prog.Id }}" /><dd class="summary">{{ $prog.Summary }} <label for="hide-description-{{ $prog.Id }}" class="hide-description"></label></dd>
               <dd class="description">{{ $prog.Details }} </dd>
                   {{- end }}
+                {{- if len $prog.Genres | ne 0 -}}
                 <span class="genres">{{ join $prog.Genres ", " }}</span>
+                {{- end -}}
             </div>
                 {{- end -}}
               {{- end -}}
