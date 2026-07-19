@@ -297,8 +297,36 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 
 		//slog.Info("adding programs from schedule", "program", *program)
 
-		// Try to detect an additional timetable
-		if matches := EmbeddedTimetableRegexp.FindAllStringSubmatch(program.Details, -1); matches != nil {
+		// Try to detect an additional timetable in the summary
+		if matches := EmbeddedTimetableRegexp.FindAllStringSubmatch(program.Summary, -1); matches != nil {
+			startTime := EmbeddedTimetableRegexp.SubexpIndex("startTime")
+			endTime := EmbeddedTimetableRegexp.SubexpIndex("endTime")
+			description := EmbeddedTimetableRegexp.SubexpIndex("description")
+			for n, match := range matches {
+				slog.Info("found timetable entry for program", "progId", program.Id, "title", program.Title, "start", match[startTime], "end", match[endTime], "desc", strings.TrimSpace(strings.TrimPrefix(match[description], ":")))
+				// Add additional program
+				additionalProgram := &Program{
+					Id:            program.Id * -1,
+					LocationId:    program.LocationId,
+					Title:         strings.TrimSpace(strings.TrimPrefix(match[description], ":")),
+					Slug:          program.Slug + "-add-" + strconv.Itoa(n),
+					FullStartTime: appendEventTime(theDayDate, match[startTime]).Add(1 * time.Second), // for sorting after the parent event
+					FullEndTime:   appendEventTime(theDayDate, match[endTime]),
+				}
+				if additionalProgram.FullStartTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+					additionalProgram.FullStartTime = additionalProgram.FullStartTime.AddDate(0, 0, 1)
+				}
+				if additionalProgram.FullEndTime.Hour() < ROLLOVER_HOUR_FROM_START_OF_DAY {
+					additionalProgram.FullEndTime = additionalProgram.FullEndTime.AddDate(0, 0, 1)
+				}
+				dayToPrograms[dayId] = append(dayToPrograms[dayId], additionalProgram)
+			}
+		}
+		// Try to detect an additional timetable in the details
+		if matches := EmbeddedTimetableRegexp.FindAllStringSubmatch(program.Details, -1);
+			matches != nil &&
+			!strings.Contains(strings.ToLower(program.Details), "salsa stage") &&
+			!strings.Contains(program.Details, "🪩✨") { // Kelfkensbos has a duplicate schedule
 			startTime := EmbeddedTimetableRegexp.SubexpIndex("startTime")
 			endTime := EmbeddedTimetableRegexp.SubexpIndex("endTime")
 			description := EmbeddedTimetableRegexp.SubexpIndex("description")

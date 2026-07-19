@@ -14,7 +14,7 @@ var (
 
 	CEST = time.FixedZone("CEST", 2*60*60)
 
-	EmbeddedTimetableRegexp = regexp.MustCompile(`(?m)^\s*(?P<startTime>\d{2}\s*:\s*\d{2})\s*-\s*(?P<endTime>\d{2}\s*:\d{2})\s*(?P<description>.+)$`)
+	EmbeddedTimetableRegexp = regexp.MustCompile(`(?m)^\s*(?P<startTime>\d{2}\s*:\s*\d{2})\s*[–-]\s*(?P<endTime>\d{2}\s*:\d{2})\s*(?P<description>.+)$`)
 )
 
 func GetCustomProgramId() int {
