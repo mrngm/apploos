@@ -20,6 +20,7 @@ var stylesheetCSS = []byte(`
   --event-location-bg: hsl(205, 100%, 69%);
   --event-sub-location-bg: hsl(205, 100%, 83%);
   --event-details-bg: hsl(205, 100%, 90%);
+  --event-details-now-bg: hsl(105, 100%, 60%);
 
   --roze-day-indicator-bg: hsl(307, 100%, 62%);
   --roze-event-location-bg: hsl(307, 100%, 73%);
@@ -410,7 +411,7 @@ dd.summary ~ a.hide, dd.summary ~ a.show {
   padding: 0.5ex;
 }
 .event.now {
-    background-color: #71f241 !important;
+    background-color: var(--event-details-now-bg) !important;
 }
 .event.past {
     filter: saturate(50%);

@@ -17,26 +17,6 @@ var htmlTemplate = `<!DOCTYPE html>
     <title>Vierdaagsefeesten 2026</title>
     <link rel="stylesheet" type="text/css" href="style.css?{{ .StylesheetChecksumShort }}" />
     <script src="scripts.js?{{ .ScriptingChecksumShort }}" defer=""></script>
-    <script type="text/javascript">
-        function scrollToAnchorOrDay() {
-            if(location.hash != "") {
-                let el = document.getElementById(location.hash.substring(1));
-                if(el != null) {
-                    el.scrollIntoView();
-                }
-            } else {
-                let today = new Date();
-                    if(today.getFullYear() == 2026 && today.getMonth() + 1 == 7) {
-                    let currentVierdaagseDay = today.getDate() - 11;
-                    if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
-                        let el = document.getElementById('day-' + currentVierdaagseDay);
-                        el.scrollIntoView();
-                    }
-                }
-            }
-        }
-        window.addEventListener("load", scrollToAnchorOrDay());
-    </script>
   </head>
   <body>
     <a name="top"></a>
@@ -145,6 +125,28 @@ var htmlTemplate = `<!DOCTYPE html>
       setTimeout(highlightNow, nextMinute - now);
     }
     highlightNow()
+
+    function scrollToAnchorOrDay() {
+        if(location.hash != "") {
+            let el = document.getElementById(location.hash.substring(1));
+            if(el != null) {
+                el.scrollIntoView();
+            }
+        } else {
+            let today = new Date();
+            if(today.getFullYear() == 2026 && today.getMonth() + 1 == 7) {
+                let currentVierdaagseDay = today.getDate() - 17;
+                if(currentVierdaagseDay >= 1 && currentVierdaagseDay <= 7) {
+                    let el = document.getElementById('day-' + currentVierdaagseDay);
+                      console.log(el);
+                    if(el != null) {
+                      el.scrollIntoView();
+                    }
+                }
+            }
+        }
+    }
+    window.addEventListener("load", scrollToAnchorOrDay());
     </script>
   </body>
 </html>
