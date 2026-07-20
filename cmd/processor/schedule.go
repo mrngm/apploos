@@ -15,12 +15,28 @@ import (
 
 var (
 	locationNameRemapping = map[string]string{
-		"De Kaaij - aan de Waal": "De Kaaij",
-		"Kaaij Hoog":             "De Kaaij (Hoog)",
+		"De Kaaij - aan de Waal":                  "De Kaaij",
+		"Kaaij Hoog":                              "De Kaaij (Hoog)",
+		"Stevenskerk - Roze Woensdag 2":           "Stevenskerk - Roze Woensdag",
+		"Stevenskerk - Roze Woensdag 3":           "Stevenskerk - Roze Woensdag",
+		"Stadseiland Stek - polsbandjesprogramma": "Stadseiland Stek - Polsbandjesprogramma",
 	}
 	childLocationPrefixDifferences = map[string]string{
 		"De Kaaij aan de Waal": "De Kaaij",
 		"Grote markt":          "Grote Markt",
+		"Valkhof":              "Valkhof Festival",
+	}
+	parentRemapping = map[string]int{
+		"Stevenskerk - Roze Woensdag 2":           65989,
+		"Stevenskerk - Roze Woensdag 3":           65989,
+		"Park Kronenburg - Polsbandjesprogramma":  68597,
+		"Stadseiland Stek - polsbandjesprogramma": 112814,
+		"Kelfkensbos Festival - Roze Woensdag":    65491,
+		"Valkhof - Polsbandjesprogramma":          65498,
+	}
+	programLocationRemapping = map[int]int{ /* original location Id -> remapped location Id */
+		415676: 253616, // Stevenskerk - Roze Woensdag 2 -> Stevenskerk - Roze Woensdag
+		415684: 253616, // Stevenskerk - Roze Woensdag 2 -> Stevenskerk - Roze Woensdag
 	}
 )
 
@@ -42,7 +58,7 @@ func SetupDays(everything VierdaagseOverview) []*Day {
 func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Location) {
 	locations := make(map[int]*Location)
 	parentLocations := 0
-	for _, loc := range everything.Locations {
+	for l, loc := range everything.Locations {
 		if _, ok := locations[loc.Id]; !ok {
 			locations[loc.Id] = &Location{
 				ProgramsByDay:        make(map[int][]*Program, 0),
@@ -57,6 +73,10 @@ func SetupLocations(everything VierdaagseOverview) (map[int]*Location, []*Locati
 			theLoc.Alias = alias
 		}
 		theLoc.Slug = loc.Slug
+		if remappedParent, ok := parentRemapping[theLoc.Title]; ok {
+			everything.Locations[l].Parent = remappedParent
+			theLoc.HasParent = true
+		}
 		if loc.Parent > 0 {
 			// Sub locations, fill into parent location's Children in separate loop
 			theLoc.HasParent = true
@@ -161,6 +181,11 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			TicketLink:     prog.TicketsLink,
 			TicketsSoldOut: prog.TicketsSoldOut,
 			Genres:         make([]string, 0, len(prog.Genres)),
+		}
+
+		if remappedLocId, ok := programLocationRemapping[prog.Location.Id]; ok {
+			slog.Warn("remapped location id", "origLocation", prog.Location.Id, "remapped", remappedLocId, "title", program.Title)
+			program.LocationId = remappedLocId
 		}
 
 		for _, genre := range prog.Genres {
@@ -323,8 +348,7 @@ func SetupPrograms(everything VierdaagseOverview) (map[int]*Program, map[int][]*
 			}
 		}
 		// Try to detect an additional timetable in the details
-		if matches := EmbeddedTimetableRegexp.FindAllStringSubmatch(program.Details, -1);
-			matches != nil &&
+		if matches := EmbeddedTimetableRegexp.FindAllStringSubmatch(program.Details, -1); matches != nil &&
 			!strings.Contains(strings.ToLower(program.Details), "salsa stage") &&
 			!strings.Contains(program.Details, "🪩✨") { // Kelfkensbos has a duplicate schedule
 			startTime := EmbeddedTimetableRegexp.SubexpIndex("startTime")
