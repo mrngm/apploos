@@ -28,6 +28,10 @@ var LocationTitlesToIds = map[string]CustomLocationId{
 	"Valkhof Festival - St. Nicolaaskapel": 65966, // For manually splitting acts on this location
 }
 
+var LocationIdsToParent = map[int]int{
+	65966: 65498, // Valkhof Festival - St. Nicolaaskapel -> Valkhof Festival
+}
+
 var UnknownLocationId CustomLocationId = -127
 
 func EnrichGenericEvent(schedule *VierdaagseOverview, event EventData) error {
@@ -50,6 +54,9 @@ func EnrichGenericEvent(schedule *VierdaagseOverview, event EventData) error {
 			Title: event.LocationTitle,
 		},
 		Slug: event.LocationSlug,
+	}
+	if parentId, ok := LocationIdsToParent[int(lid)]; ok {
+		theLoc.Parent = parentId
 	}
 	schedule.Locations = append(schedule.Locations, theLoc)
 
