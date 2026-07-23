@@ -142,6 +142,7 @@ func CompareLocationByEffectiveTitle(a, b *Location) int {
 }
 
 func appendEventTime(initialTime time.Time, eventTime string) time.Time {
+	eventTime = strings.ReplaceAll(eventTime, ".", ":")
 	hours, minutes, ok := strings.Cut(eventTime, ":")
 	if ok && len(hours) == 2 && len(minutes) == 2 {
 		hrs, err := strconv.Atoi(hours)
